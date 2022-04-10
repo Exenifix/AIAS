@@ -38,6 +38,8 @@ class Automod(commands.Cog):
         if message.author.bot:
             return
         await self.bot.db.register_message(message.content)
+        if message.author.guild_permissions.manage_guild:
+            return
 
         if await self._process_antispam(message):
             return
@@ -65,7 +67,9 @@ class Automod(commands.Cog):
         current_warnings = self._get_warnings(message.author)
         self.warnings[message.guild.id][message.author.id] += 1
         if current_warnings >= 3:
-            await message.channel.send(f"{message.author.mention} enjoy your mute!")
+            await message.channel.send(
+                f"{self.bot.sys_emojis.checkmark} {message.author.mention} enjoy your mute!"
+            )
             await message.author.timeout(
                 duration=timedelta(minutes=15), reason="Warnings threshold exceed."
             )  # TODO: should be customizable
@@ -97,7 +101,9 @@ class Automod(commands.Cog):
                 warnings = await self._add_warning(message)
                 if warnings != -1:
                     await message.channel.send(
-                        f"{message.author.mention} stop spamming! You will be muted in **{warnings}** warnings."
+                        f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
+{message.author.mention} **stop spamming!** \n\
+*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
                     )
                 await message.channel.delete_messages(queue)
                 queue.clear()
@@ -131,7 +137,9 @@ class Automod(commands.Cog):
                 warnings = await self._add_warning(message)
                 if warnings != -1:
                     await message.channel.send(
-                        f"{message.author.mention} do not curse! You will be muted in **{warnings}** warnings."
+                        f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
+{message.author.mention} **do not curse!** \n\
+*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
                     )
                 await message.channel.delete_messages(queue)
                 queue.clear()
@@ -143,7 +151,6 @@ class Automod(commands.Cog):
         antispam = await self.bot.db.get_guild(message.guild.id).get_antispam_data()
         if (
             not antispam.enabled
-            or message.author.guild_permissions.manage_guild
             or message.channel.id in antispam.ignored
             or any([r.id in antispam.ignored for r in message.author.roles])
         ):
@@ -154,7 +161,9 @@ class Automod(commands.Cog):
             warnings = await self._add_warning(message)
             if warnings != -1:
                 await message.channel.send(
-                    f"{message.author.mention} stop spamming! You will be muted in **{warnings}** warnings."
+                    f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
+{message.author.mention} **stop spamming!** \n\
+*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
                 )
             return True
 
@@ -163,7 +172,6 @@ class Automod(commands.Cog):
         blacklist = await guild.get_blacklist_data()
         if (
             not blacklist.enabled
-            or message.author.guild_permissions.manage_guild
             or message.channel.id in blacklist.ignored
             or any([r.id in blacklist.ignored for r in message.author.roles])
         ):
@@ -184,7 +192,9 @@ class Automod(commands.Cog):
             warnings = await self._add_warning(message)
             if warnings != -1:
                 await message.channel.send(
-                    f"{message.author.mention} do not curse! You will be muted in **{warnings}** warnings."
+                    f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
+{message.author.mention} **do not curse!** \n\
+*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
                 )
         return is_curse
 
@@ -215,7 +225,9 @@ class BlacklistManagement(commands.Cog):
     )
     async def blacklist_enable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_blacklist_enabled(True)
-        await inter.send(f"Successfully enabled blacklist for this server.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Successfully enabled blacklist for this server.**"
+        )
 
     @blacklist_group.sub_command(
         name="disable", description="Disaales blacklist filtering."
@@ -233,7 +245,8 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).set_blacklist_filter_enabled(value)
         await inter.send(
-            f"Successfully {'enabled' if value else 'disabled'} blacklist filter fot this server."
+            f"{self.bot.sys_emojis.checkmark} | \
+**Successfully {'enabled' if value else 'disabled'} blacklist filter fot this server.**"
         )
 
     @blacklist_group.sub_command(
@@ -276,7 +289,7 @@ class BlacklistManagement(commands.Cog):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_word(expression, mode)
 
         await inter.send(
-            f"Successfully added new word to the `{mode.value}` blacklist!"
+            f"{self.bot.sys_emojis.checkmark} | **Successfully added new word to the `{mode.value}` blacklist!**"
         )
 
     @blacklist_group.sub_command(
@@ -296,7 +309,7 @@ class BlacklistManagement(commands.Cog):
         )
 
         await inter.send(
-            f"Successfully removed `{expression}` from the `{mode.value}` blacklist!"
+            f"{self.bot.sys_emojis.checkmark} | **Successfully removed `{expression}` from the `{mode.value}` blacklist!**"
         )
 
     @blacklist_group.sub_command_group(name="ignore")
@@ -310,7 +323,9 @@ class BlacklistManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_ignored(role.id)
-        await inter.send(f"Added {role.mention} to blacklist ignored roles.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Added {role.mention} to blacklist ignored roles.**"
+        )
 
     @blacklist_ignore.sub_command(
         name="addchannel", description="Adds a channel to the blacklist ignored roles."
@@ -319,7 +334,9 @@ class BlacklistManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_ignored(channel.id)
-        await inter.send(f"Added {channel.mention} to the blacklist ignored channels.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Added {channel.mention} to the blacklist ignored channels.**"
+        )
 
     @blacklist_ignore.sub_command(
         name="removerole",
@@ -329,7 +346,9 @@ class BlacklistManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_ignored(role.id)
-        await inter.send(f"Removed {role.mention} from the blacklist ignored roles.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Removed {role.mention} from the blacklist ignored roles.**"
+        )
 
     @blacklist_ignore.sub_command(
         name="removechannel",
@@ -340,7 +359,7 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_ignored(channel.id)
         await inter.send(
-            f"Removed {channel.mention} from the blacklist ignored channels."
+            f"{self.bot.sys_emojis.checkmark} | **Removed {channel.mention} from the blacklist ignored channels.**"
         )
 
 
@@ -363,14 +382,18 @@ class AntiSpamManagement(commands.Cog):
     )
     async def antispam_enable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_antispam_enabled(True)
-        await inter.send(f"Successfully enabled antispam for this guild.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Successfully enabled antispam for this guild.**"
+        )
 
     @antispam_group.sub_command(
         name="disable", description="Disaales antispam filtering."
     )
     async def antispam_disable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_antispam_enabled(False)
-        await inter.send(f"Successfully disabled antispam for this guild.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Successfully disabled antispam for this guild.**"
+        )
 
     @antispam_group.sub_command_group(name="ignore")
     async def antispam_ignore(self, *_):
@@ -383,7 +406,9 @@ class AntiSpamManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_antispam_ignored(role.id)
-        await inter.send(f"Added {role.mention} to antispam ignored roles.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Added {role.mention} to antispam ignored roles.**"
+        )
 
     @antispam_ignore.sub_command(
         name="addchannel", description="Adds a channel to the antispam ignored roles."
@@ -392,7 +417,9 @@ class AntiSpamManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).add_antispam_ignored(channel.id)
-        await inter.send(f"Added {channel.mention} to the antispam ignored channels.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Added {channel.mention} to the antispam ignored channels.**"
+        )
 
     @antispam_ignore.sub_command(
         name="removerole",
@@ -402,7 +429,9 @@ class AntiSpamManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_antispam_ignored(role.id)
-        await inter.send(f"Removed {role.mention} from the antispam ignored roles.")
+        await inter.send(
+            f"{self.bot.sys_emojis.checkmark} | **Removed {role.mention} from the antispam ignored roles.**"
+        )
 
     @antispam_ignore.sub_command(
         name="removechannel",
@@ -413,7 +442,7 @@ class AntiSpamManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_antispam_ignored(channel.id)
         await inter.send(
-            f"Removed {channel.mention} from the antispam ignored channels."
+            f"{self.bot.sys_emojis.checkmark} | **Removed {channel.mention} from the antispam ignored channels.**"
         )
 
 

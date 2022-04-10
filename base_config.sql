@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS data (
 CREATE TABLE IF NOT EXISTS guilds (
     id BIGINT UNIQUE NOT NULL,
 
-    antispam_enabled BOOLEAN DEFAULT FALSE,
+    antispam_enabled BOOLEAN DEFAULT TRUE,
     antispam_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[],
 
-    blacklist_enabled BOOLEAN DEFAULT FALSE,
+    blacklist_enabled BOOLEAN DEFAULT TRUE,
     blacklist_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[],
 
     blacklist_common TEXT[] DEFAULT ARRAY[]::TEXT[] CHECK(ARRAY_LENGTH(blacklist_common, 1) <= 50),
@@ -27,3 +27,9 @@ CREATE TABLE IF NOT EXISTS guilds (
 
     automod_managers BIGINT[] DEFAULT ARRAY[]::BIGINT[]
 );
+
+CREATE TABLE IF NOT EXISTS version_data (
+    id INT UNIQUE, version INT NOT NULL
+);
+
+INSERT INTO version_data (id, version) VALUES (0, 0) ON CONFLICT DO NOTHING;

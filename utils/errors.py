@@ -43,6 +43,16 @@ class AlreadyIgnored(DatabaseException):
         super().__init__(f"An object with ID {id} is already ignored.")
 
 
+class AlreadyManager(DatabaseException):
+    def __init__(self, id: int):
+        super().__init__(f"An object with ID {id} is already a manager.")
+
+
+class NotManager(DatabaseException):
+    def __init__(self, id: int):
+        super().__init__(f"An object with ID {id} is not a manager.")
+
+
 class ManagerOnly(CustomError):
     def __init__(self):
         super().__init__(

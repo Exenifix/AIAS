@@ -9,9 +9,16 @@ from disnake.ext import commands
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
+from utils.constants import EMOJIS
 from utils.datamodels import Database
 
 REQUIRED_FOLDERS = ("logs",)
+
+
+class Emojis:
+    checkmark: disnake.Emoji
+    exclamation: disnake.Emoji
+    warning: disnake.Emoji
 
 
 class Bot(commands.Bot):
@@ -26,6 +33,7 @@ class Bot(commands.Bot):
         )
         self.log = Logger("BOT")
         self.db: Database = Database()
+        self.sys_emojis: Emojis = Emojis()
         self.version = version
 
     async def start(self, *args, **kwargs):
@@ -60,8 +68,13 @@ class Bot(commands.Bot):
 
         super().run(token)
 
+    def load_emojis(self):
+        for name, id in EMOJIS.items():
+            setattr(self.sys_emojis, name, self.get_emoji(id))
+
     async def on_ready(self):
         self.log.info("Bot is ready!")
+        self.load_emojis()
 
     async def on_error(self, event_method: str, *args, **kwargs):
         self.log.error("Unhandled exception occured at %s", event_method)

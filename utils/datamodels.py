@@ -1,5 +1,6 @@
 import sys
 from os import getenv
+from random import choice
 from typing import Any
 
 import asyncpg
@@ -7,8 +8,17 @@ from ai.analyser import analyse_sample
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
+from utils.constants import SPAM_VERIFICATION_THRESHOLD
+from utils.db_updater import update_db
 from utils.enums import BlacklistMode, FetchMode
-from utils.errors import AlreadyIgnored, NotIgnored, WordAlreadyExists, WordNotFound
+from utils.errors import (
+    AlreadyIgnored,
+    AlreadyManager,
+    NotIgnored,
+    NotManager,
+    WordAlreadyExists,
+    WordNotFound,
+)
 
 load_dotenv()
 
@@ -63,19 +73,18 @@ class Database:
                     return await con.fetch(query, *args)
 
     async def setup(self, filename: str = "base_config.sql"):
+        self.log.info("Executing setup statements...")
         with open(filename, "r") as f:
             async with self._pool.acquire() as con:
                 con: asyncpg.Connection
                 for sql in f.read().split(";"):
                     if len(sql) <= 1:
                         continue
-                    self.log.info(
-                        "Executing SETUP stetement: %s",
-                        sql,
-                    )
                     await con.execute(sql)
 
-    def get_guild(self, id: int):
+        await update_db(self)
+
+    def get_guild(self, id: int) -> "GuildData":
         return GuildData(self, id)
 
     async def register_message(self, content: str):
@@ -86,6 +95,38 @@ class Database:
             content,
             *data,
         )
+
+    async def modify_message_score(self, id: int, upvote: bool):
+        if upvote:
+            await self.execute(
+                "UPDATE data SET upvotes = upvotes + 1 WHERE id = $1", id
+            )
+        else:
+            await self.execute(
+                "UPDATE data SET downvotes = downvotes + 1 WHERE id = $1", id
+            )
+
+    async def get_random_record(self) -> tuple[int, str]:
+        records = await self.execute(
+            "SELECT id, content FROM data WHERE upvotes + downvotes < $1 AND is_spam IS NULL LIMIT 50",
+            SPAM_VERIFICATION_THRESHOLD,
+            fetch_mode=FetchMode.ALL,
+        )
+        if len(records) == 0:
+            return None, None
+        return tuple(choice(records).values())
+
+    async def mark_message_as_spam(self, id: int, is_spam: bool):
+        await self.execute("UPDATE data SET is_spam = $1 WHERE id = $2", is_spam, id)
+
+    async def get_unmarked_message(self):
+        record = await self.execute(
+            "SELECT id, content FROM data WHERE is_spam IS NULL LIMIT 1",
+            fetch_mode=FetchMode.ROW,
+        )
+        if record is None:
+            return None, None
+        return tuple(record.values())
 
 
 class SubData:
@@ -171,6 +212,23 @@ class GuildData:
 
     async def get_automod_managers(self) -> list[int]:
         return await self._select("automod_managers", FetchMode.VAL)
+
+    async def add_automod_manager(self, value: int):
+        managers = await self.get_automod_managers()
+        if value in managers:
+            raise AlreadyManager(value)
+
+        managers.append(value)
+        await self._update(automod_managers=managers)
+
+    async def remove_automod_manager(self, value: int):
+        try:
+            managers = await self.get_automod_managers()
+            managers.remove(value)
+        except ValueError:
+            raise NotManager(value)
+
+        await self._update(automod_managers=managers)
 
     async def set_antispam_enabled(self, value: bool):
         await self._update(antispam_enabled=value)
