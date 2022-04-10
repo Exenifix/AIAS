@@ -9,7 +9,7 @@ class BlacklistData:
         self.filter_enabled = True
 
 
-BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>\n"
+BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,\n"
 SYMBOL_MASK = {
     "!": "i",
     "1": "i",
