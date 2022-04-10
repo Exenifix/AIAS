@@ -1,4 +1,5 @@
 from utils.datamodels import BlacklistData
+from utils.enums import BlacklistMode
 
 
 class BlacklistData:
@@ -107,3 +108,11 @@ def is_blacklisted(bl: BlacklistData, expr: str):
         any([common_is_curse, wild_is_curse, super_is_curse]),
         expr if bl.filter_enabled else None,
     )
+
+
+def preformat(expr: str, mode: BlacklistMode):
+    expr = _format_expression(expr)
+    if mode == BlacklistMode.super:
+        expr = expr.replace(" ", "")
+
+    return expr

@@ -11,5 +11,4 @@ class FetchMode(Enum):
 class BlacklistMode(Enum):
     common = "common"
     wild = "wild"
-    wildcard = "wild"
     super = "super"

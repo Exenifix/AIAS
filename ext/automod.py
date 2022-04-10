@@ -3,9 +3,9 @@ from datetime import timedelta
 import disnake
 from ai.predictor import is_spam
 from disnake.ext import commands, tasks
-from utils.blacklist import is_blacklisted
+from utils.blacklist import is_blacklisted, preformat
 from utils.bot import Bot
-from utils.constants import MAX_QUEUE_SIZE
+from utils.constants import MAX_SPAM_QUEUE_SIZE
 from utils.embeds import BaseEmbed
 from utils.enums import BlacklistMode
 from utils.errors import ManagerOnly
@@ -17,6 +17,7 @@ class Automod(commands.Cog):
         self.bot = bot
         self.warnings: dict[int, dict[int, int]] = {}
         self.antispam_queue: dict[int, dict[int, Queue[disnake.Message]]] = {}
+        self.blacklist_queue: dict[int, dict[int, Queue[disnake.Message]]] = {}
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
 
         self.warnings_reseter.start()
@@ -44,7 +45,10 @@ class Automod(commands.Cog):
         elif await self._process_blacklist(message):
             return
 
-        elif await self._process_queue(message):
+        elif await self._process_antispam_queue(message):
+            return
+
+        elif await self._process_blacklist_queue(message):
             return
 
     def _get_warnings(self, author: disnake.Member):
@@ -70,15 +74,15 @@ class Automod(commands.Cog):
         else:
             return 3 - current_warnings
 
-    async def _process_queue(self, message: disnake.Message) -> bool:
+    async def _process_antispam_queue(self, message: disnake.Message) -> bool:
         if not message.guild.id in self.antispam_queue:
             self.antispam_queue[message.guild.id] = {
-                message.author.id: Queue([message], max_size=MAX_QUEUE_SIZE)
+                message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
             }
             return False
         elif not message.author.id in self.antispam_queue[message.guild.id]:
             self.antispam_queue[message.guild.id][message.author.id] = Queue(
-                [message], max_size=MAX_QUEUE_SIZE
+                [message], max_size=MAX_SPAM_QUEUE_SIZE
             )
             return False
         elif len(self.antispam_queue[message.guild.id][message.author.id]) <= 1:
@@ -98,27 +102,37 @@ class Automod(commands.Cog):
                 await message.channel.delete_messages(queue)
                 queue.clear()
                 return True
-            else:
-                is_curse, expr = is_blacklisted(
-                    await self.bot.db.get_guild(message.guild.id).get_blacklist_data(),
-                    full_content,
-                )
-                if is_curse:
-                    await message.delete()
-                    if expr is not None:
-                        await message.channel.send(
-                            embed=BaseEmbed(
-                                message,
-                                "Cursing Detected",
-                                f"Message authored by {message.author.mention} was deleted. Censoured version:\n```{expr}```",
-                            )
-                        )
-                    warnings = await self._add_warning(message)
-                    if warnings != -1:
-                        await message.channel.send(
-                            f"{message.author.mention} do not curse! You will be muted in **{warnings}** warnings."
-                        )
-                    return True
+
+        return False
+
+    async def _process_blacklist_queue(self, message: disnake.Message):
+        if not message.guild.id in self.blacklist_queue:
+            self.blacklist_queue[message.guild.id] = {
+                message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
+            }
+            return False
+        elif not message.author.id in self.blacklist_queue[message.guild.id]:
+            self.blacklist_queue[message.guild.id][message.author.id] = Queue(
+                [message], max_size=MAX_SPAM_QUEUE_SIZE
+            )
+            return False
+        elif len(self.blacklist_queue[message.guild.id][message.author.id]) <= 1:
+            queue = self.blacklist_queue[message.guild.id][message.author.id]
+            queue.add(message)
+            return False
+        else:
+            queue = self.blacklist_queue[message.guild.id][message.author.id]
+            queue.add(message)
+            full_content = " ".join([m.content for m in queue])
+            if is_spam(full_content):
+                warnings = await self._add_warning(message)
+                if warnings != -1:
+                    await message.channel.send(
+                        f"{message.author.mention} do not curse! You will be muted in **{warnings}** warnings."
+                    )
+                await message.channel.delete_messages(queue)
+                queue.clear()
+                return True
 
         return False
 
@@ -255,6 +269,7 @@ class BlacklistManagement(commands.Cog):
         expression: str = commands.Param(),
     ):
         mode = BlacklistMode(mode)
+        expression = preformat(expression, mode)
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_word(expression, mode)
 
         await inter.send(
