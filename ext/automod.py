@@ -124,7 +124,10 @@ class Automod(commands.Cog):
             queue = self.blacklist_queue[message.guild.id][message.author.id]
             queue.add(message)
             full_content = " ".join([m.content for m in queue])
-            if is_spam(full_content):
+            if is_blacklisted(
+                await self.bot.db.get_guild(message.guild.id).get_blacklist_data(),
+                full_content,
+            )[0]:
                 warnings = await self._add_warning(message)
                 if warnings != -1:
                     await message.channel.send(
