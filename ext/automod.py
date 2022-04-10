@@ -309,7 +309,7 @@ class AntiSpamManagement(commands.Cog):
         self, inter: disnake.ApplicationCommandInteraction
     ):
         # basically copying the slash check from blacklist management, might bring this out to external function
-        return BlacklistManagement.cog_slash_command_check(self, inter)
+        return await BlacklistManagement.cog_slash_command_check(self, inter)
 
     @commands.slash_command(name="antispam")
     async def antispam_group(self, *_):
