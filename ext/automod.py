@@ -78,19 +78,21 @@ class Automod(commands.Cog):
             )
             return False
         elif len(self.antispam_queue[message.guild.id][message.author.id]) <= 1:
+            queue = self.antispam_queue[message.guild.id][message.author.id]
+            queue.add(message)
             return False
         else:
             queue = self.antispam_queue[message.guild.id][message.author.id]
             queue.add(message)
             full_content = "\n".join([m.content for m in queue])
             if is_spam(full_content):
-                queue.clear()
                 warnings = await self._add_warning(message)
                 if warnings != -1:
                     await message.channel.send(
                         f"{message.author.mention} stop spamming! You will be muted in **{warnings}** warnings."
                     )
                 await message.channel.delete_messages(queue)
+                queue.clear()
                 return True
 
         return False

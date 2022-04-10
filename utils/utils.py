@@ -18,7 +18,7 @@ class Queue(Generic[T]):
         self.max_size = max_size
 
     def __str__(self):
-        val = '"' + '", "'.join(self._data) + '"'
+        val = '"' + '", "'.join(map(str, self._data)) + '"'
         return f"Queue([{val}])"
 
     def __len__(self):
