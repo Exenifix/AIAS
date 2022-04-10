@@ -210,7 +210,9 @@ class GuildData:
             raise NotIgnored(value)
 
     async def add_blacklist_word(self, value: str, mode: BlacklistMode):
-        current: list[str] = await self._select("blacklist_" + mode.value)
+        current: list[str] = await self._select(
+            "blacklist_" + mode.value, FetchMode.VAL
+        )
 
         if value in current:
             raise WordAlreadyExists(value, mode.value)
@@ -219,7 +221,9 @@ class GuildData:
         await self._update(**{"blacklist_" + mode.value: current})
 
     async def remove_blacklist_word(self, value: str, mode: BlacklistMode):
-        current: list[str] = await self._select("blacklist_" + mode.value)
+        current: list[str] = await self._select(
+            "blacklist_" + mode.value, FetchMode.VAL
+        )
         try:
             current.remove(value)
             await self._update(**{"blacklist_" + mode.value: current})
