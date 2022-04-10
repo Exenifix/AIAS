@@ -25,7 +25,8 @@ class Automod(commands.Cog):
     async def warnings_reseter(self):
         for guild_id in self.warnings:
             for member_id in self.warnings[guild_id]:
-                self.warnings[guild_id][member_id] -= 1
+                if self.warnings[guild_id][member_id] > 0:
+                    self.warnings[guild_id][member_id] -= 1
 
     @warnings_reseter.before_loop
     async def loop_waiter(self):
@@ -41,6 +42,9 @@ class Automod(commands.Cog):
             return
 
         elif await self._process_blacklist(message):
+            return
+
+        elif await self._process_queue(message):
             return
 
     def _get_warnings(self, author: disnake.Member):
@@ -84,7 +88,7 @@ class Automod(commands.Cog):
         else:
             queue = self.antispam_queue[message.guild.id][message.author.id]
             queue.add(message)
-            full_content = "\n".join([m.content for m in queue])
+            full_content = " ".join([m.content for m in queue])
             if is_spam(full_content):
                 warnings = await self._add_warning(message)
                 if warnings != -1:
@@ -94,6 +98,27 @@ class Automod(commands.Cog):
                 await message.channel.delete_messages(queue)
                 queue.clear()
                 return True
+            else:
+                is_curse, expr = is_blacklisted(
+                    await self.bot.db.get_guild(message.guild.id).get_blacklist_data(),
+                    full_content,
+                )
+                if is_curse:
+                    await message.delete()
+                    if expr is not None:
+                        await message.channel.send(
+                            embed=BaseEmbed(
+                                message,
+                                "Cursing Detected",
+                                f"Message authored by {message.author.mention} was deleted. Censoured version:\n```{expr}```",
+                            )
+                        )
+                    warnings = await self._add_warning(message)
+                    if warnings != -1:
+                        await message.channel.send(
+                            f"{message.author.mention} do not curse! You will be muted in **{warnings}** warnings."
+                        )
+                    return True
 
         return False
 
@@ -115,8 +140,6 @@ class Automod(commands.Cog):
                     f"{message.author.mention} stop spamming! You will be muted in **{warnings}** warnings."
                 )
             return True
-        else:
-            return await self._process_queue(message)
 
     async def _process_blacklist(self, message: disnake.Message) -> bool:
         guild = self.bot.db.get_guild(message.guild.id)
@@ -213,7 +236,7 @@ class BlacklistManagement(commands.Cog):
             "Blacklisted Expressions",
             "**COMMON** - searches for exact occurences of the blacklisted words in a message.\n\
 **WILD** - searches for the occurences of the blacklisted words everywhere in a message. This means that word may be spotted even if it is inside of another word. Example: blacklisted - `frick`; expression: `fricking`\n\
-**SUPER** - works just like the **WILD** but ignores spaces. Example: blacklisted - `frick`; expression - `fr icki ng`",
+**SUPER** - works just like the **WILD** but ignores spaces. This can also detect words *across several messages*. Example: blacklisted - `frick`; expression - `fr icki ng`",
         )
         embed.add_field("Common", "`" + "`, `".join(bl.common) + "`")
         embed.add_field("Wild", "`" + "`, `".join(bl.wild) + "`")
