@@ -5,7 +5,7 @@ from ai.predictor import is_spam
 from disnake.ext import commands, tasks
 from utils.blacklist import is_blacklisted, preformat
 from utils.bot import Bot
-from utils.constants import MAX_SPAM_QUEUE_SIZE
+from utils.constants import MAX_BLACKLIST_QUEUE_SIZE, MAX_SPAM_QUEUE_SIZE
 from utils.embeds import BaseEmbed
 from utils.enums import BlacklistMode
 from utils.errors import ManagerOnly
@@ -108,12 +108,12 @@ class Automod(commands.Cog):
     async def _process_blacklist_queue(self, message: disnake.Message):
         if not message.guild.id in self.blacklist_queue:
             self.blacklist_queue[message.guild.id] = {
-                message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
+                message.author.id: Queue([message], max_size=MAX_BLACKLIST_QUEUE_SIZE)
             }
             return False
         elif not message.author.id in self.blacklist_queue[message.guild.id]:
             self.blacklist_queue[message.guild.id][message.author.id] = Queue(
-                [message], max_size=MAX_SPAM_QUEUE_SIZE
+                [message], max_size=MAX_BLACKLIST_QUEUE_SIZE
             )
             return False
         elif len(self.blacklist_queue[message.guild.id][message.author.id]) <= 1:
