@@ -1,5 +1,5 @@
 from collections import deque
-from typing import Generic, Optional, Sequence, TypeVar, Iterator
+from typing import Generic, Iterator, Optional, Sequence, TypeVar
 
 T = TypeVar("T")
 
@@ -21,6 +21,12 @@ class Queue(Generic[T]):
         val = '"' + '", "'.join(self._data) + '"'
         return f"Queue([{val}])"
 
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[T]:
+        return iter(self._data)
+
     def add(self, value: T) -> None:
         self._data.append(value)
 
@@ -30,5 +36,5 @@ class Queue(Generic[T]):
     def pop(self) -> T:
         return self._data.popleft()
 
-    def __iter__(self) -> Iterator[T]:
-        return iter(self._data)
+    def clear(self) -> None:
+        self._data.clear()

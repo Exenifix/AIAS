@@ -18,7 +18,12 @@ class Bot(commands.Bot):
     def __init__(self, version: str):
         intents = disnake.Intents.all()
         intents.presences = False
-        super().__init__(intents=intents)
+        super().__init__(
+            intents=intents,
+            allowed_mentions=disnake.AllowedMentions(
+                everyone=False, users=True, roles=False, replied_user=True
+            ),
+        )
         self.log = Logger("BOT")
         self.db: Database = Database()
         self.version = version

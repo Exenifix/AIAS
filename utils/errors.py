@@ -1,7 +1,8 @@
-from disnake.ext import commands
-from disnake import Forbidden
 import inspect
 import sys
+
+from disnake import Forbidden
+from disnake.ext import commands
 
 UNKNOWN = object()
 
@@ -35,6 +36,11 @@ class WordAlreadyExists(DatabaseException):
         super().__init__(
             f"The expression `{word}` is already added to `{mode}` blacklist!"
         )
+
+
+class AlreadyIgnored(DatabaseException):
+    def __init__(self, id: int):
+        super().__init__(f"An object with ID {id} is already ignored.")
 
 
 class ManagerOnly(CustomError):

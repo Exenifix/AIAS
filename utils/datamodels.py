@@ -1,12 +1,14 @@
-import asyncpg, sys
-from exencolorlogs import Logger
-from typing import Any, Sequence
+import sys
 from os import getenv
-from dotenv import load_dotenv
+from typing import Any
 
+import asyncpg
 from ai.analyser import analyse_sample
-from utils.enums import FetchMode, BlacklistMode
-from utils.errors import NotIgnored, WordAlreadyExists, WordNotFound
+from dotenv import load_dotenv
+from exencolorlogs import Logger
+
+from utils.enums import BlacklistMode, FetchMode
+from utils.errors import AlreadyIgnored, NotIgnored, WordAlreadyExists, WordNotFound
 
 load_dotenv()
 
@@ -110,20 +112,6 @@ class AntiSpamData(SubData):
 
     __slots__ = ["_guild", "enabled", "ignored"]
 
-    async def set_enabled(self, value: bool):
-        await self._guild._update(antispam_enabled=value)
-
-    async def add_ignored(self, value: int):
-        self.ignored.append(value)
-        await self._guild._update(antispam_ignored=self.ignored)
-
-    async def remove_ignored(self, value: int):
-        try:
-            self.ignored.remove(value)
-            await self._guild._update(antispam_ignored=self.ignored)
-        except ValueError:
-            raise NotIgnored(value)
-
 
 class BlacklistData(SubData):
     _guild: "GuildData"
@@ -136,37 +124,6 @@ class BlacklistData(SubData):
 
     __slots__ = ["enabled", "ignored", "common", "wild", "super", "filter_enabled"]
 
-    async def set_enabled(self, value: bool):
-        await self._guild._update(blacklist_enabled=value)
-
-    async def add_ignored(self, value: int):
-        self.ignored.append(value)
-        await self._guild._update(blacklist_ignored=self.ignored)
-
-    async def remove_ignored(self, value: int):
-        try:
-            self.ignored.remove(value)
-            await self._guild._update(blacklist_ignored=self.ignored)
-        except ValueError:
-            raise NotIgnored(value)
-
-    async def add_word(self, value: str, mode: BlacklistMode):
-        current: list[str] = getattr(self, mode.value)
-
-        if value in current:
-            raise WordAlreadyExists(value, mode.value)
-
-        current.append(value)
-        await self._guild._update(**{"blacklist_" + mode.value: current})
-
-    async def remove_word(self, value: str, mode: BlacklistMode):
-        current: list[str] = getattr(self, mode.value)
-        try:
-            current.remove(value)
-            await self._guild._update(**{"blacklist_" + mode.value: current})
-        except ValueError:
-            raise WordNotFound(value, mode.value)
-
 
 class GuildData:
     id: int
@@ -176,12 +133,9 @@ class GuildData:
         self._db = _db
 
     async def _validate_existence(self):
-        if not await self._db.execute(
-            "SELECT EXISTS(SELECT 1 FROM guilds WHERE id = $1)",
-            self.id,
-            fetch_mode=FetchMode.VAL,
-        ):
-            await self._db.execute("INSERT INTO guilds (id) VALUES ($1)", self.id)
+        await self._db.execute(
+            "INSERT INTO guilds (id) VALUES ($1) ON CONFLICT DO NOTHING", self.id
+        )
 
     async def _select(self, args: str, fetch_mode: FetchMode = FetchMode.ROW):
         await self._validate_existence()
@@ -217,3 +171,57 @@ class GuildData:
 
     async def get_automod_managers(self) -> list[int]:
         return await self._select("automod_managers", FetchMode.VAL)
+
+    async def set_antispam_enabled(self, value: bool):
+        await self._update(antispam_enabled=value)
+
+    async def add_antispam_ignored(self, value: int):
+        ignored = await self._select("antispam_ignored", FetchMode.VAL)
+        if value in ignored:
+            raise AlreadyIgnored(value)
+        await self._update(antispam_ignored=ignored)
+
+    async def remove_antispam_ignored(self, value: int):
+        try:
+            ignored = await self._select("antispam_ignored", FetchMode.VAL)
+            ignored.remove(value)
+            await self._update(antispam_ignored=ignored)
+        except ValueError:
+            raise NotIgnored(value)
+
+    async def set_blacklist_enabled(self, value: bool):
+        await self._update(blacklist_enabled=value)
+
+    async def set_blacklist_filter_enabled(self, value: bool):
+        await self._update(blacklist_filter_enabled=value)
+
+    async def add_blacklist_ignored(self, value: int):
+        ignored = await self._select("blacklist_ignored", FetchMode.VAL)
+        if value in ignored:
+            raise AlreadyIgnored(value)
+        await self._update(blacklist_ignored=ignored)
+
+    async def remove_blacklist_ignored(self, value: int):
+        try:
+            ignored = await self._select("blacklist_ignored", FetchMode.VAL)
+            ignored.remove(value)
+            await self._update(blacklist_ignored=ignored)
+        except ValueError:
+            raise NotIgnored(value)
+
+    async def add_blacklist_word(self, value: str, mode: BlacklistMode):
+        current: list[str] = await self._select("blacklist_" + mode.value)
+
+        if value in current:
+            raise WordAlreadyExists(value, mode.value)
+
+        current.append(value)
+        await self._update(**{"blacklist_" + mode.value: current})
+
+    async def remove_blacklist_word(self, value: str, mode: BlacklistMode):
+        current: list[str] = await self._select("blacklist_" + mode.value)
+        try:
+            current.remove(value)
+            await self._update(**{"blacklist_" + mode.value: current})
+        except ValueError:
+            raise WordNotFound(value, mode.value)
