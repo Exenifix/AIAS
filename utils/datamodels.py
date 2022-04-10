@@ -179,6 +179,8 @@ class GuildData:
         ignored = await self._select("antispam_ignored", FetchMode.VAL)
         if value in ignored:
             raise AlreadyIgnored(value)
+
+        ignored.append(value)
         await self._update(antispam_ignored=ignored)
 
     async def remove_antispam_ignored(self, value: int):
@@ -199,6 +201,8 @@ class GuildData:
         ignored = await self._select("blacklist_ignored", FetchMode.VAL)
         if value in ignored:
             raise AlreadyIgnored(value)
+
+        ignored.append(value)
         await self._update(blacklist_ignored=ignored)
 
     async def remove_blacklist_ignored(self, value: int):
