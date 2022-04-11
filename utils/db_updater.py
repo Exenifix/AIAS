@@ -29,5 +29,3 @@ async def update_db(db):
 
         await db.execute("UPDATE version_data SET version = $1 WHERE id = 0", version)
         db.log.info("Database is at latest version now!")
-
-    await db.close()
