@@ -47,12 +47,6 @@ class Automod(commands.Cog):
         elif await self._process_blacklist(message):
             return
 
-        elif await self._process_antispam_queue(message):
-            return
-
-        elif await self._process_blacklist_queue(message):
-            return
-
     def _get_warnings(self, author: disnake.Member):
         if not author.guild.id in self.warnings:
             self.warnings[author.guild.id] = {author.id: 0}
@@ -166,6 +160,8 @@ class Automod(commands.Cog):
 *You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
                 )
             return True
+        else:
+            return await self._process_antispam_queue(message)
 
     async def _process_blacklist(self, message: disnake.Message) -> bool:
         guild = self.bot.db.get_guild(message.guild.id)
@@ -196,6 +192,8 @@ class Automod(commands.Cog):
 {message.author.mention} **do not curse!** \n\
 *You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
                 )
+        else:
+            return await self._process_blacklist_queue(message)
         return is_curse
 
 

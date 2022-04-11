@@ -45,7 +45,7 @@ class Training(commands.Cog):
                     view=view,
                     ephemeral=True,
                 )
-                res = await view.get_result()
+                res, inter = await view.get_result()
                 if res == ViewResponse.YES:
                     await self.bot.db.modify_message_score(id, 1)
 
@@ -112,7 +112,7 @@ class Training(commands.Cog):
                     view=view,
                     ephemeral=True,
                 )
-                res = await view.get_result()
+                res, inter = await view.get_result()
                 if res == ViewResponse.YES:
                     await self.bot.db.mark_message_as_spam(id, True)
 
@@ -134,8 +134,6 @@ class Training(commands.Cog):
                 ephemeral=True,
             )
             raise e
-        finally:
-            self.active_sessions.remove(inter.author.id)
 
 
 def setup(bot: Bot):
