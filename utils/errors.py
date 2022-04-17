@@ -60,6 +60,23 @@ class ManagerOnly(CustomError):
         )
 
 
+class WordsThresholdExceeded(DatabaseException):
+    def __init__(self):
+        super().__init__(
+            "Sorry, but there can be only **50** words per mode. Please delete some to add new."
+        )
+
+
+class RuleAlreadyExists(DatabaseException):
+    def __init__(self, rule_key: str):
+        super().__init__(f"A rule with key {rule_key} already exists.")
+
+
+class RuleNotFound(DatabaseException):
+    def __init__(self, rule_key: str):
+        super().__init__(f"A rule with key {rule_key} doesn't exist.")
+
+
 known_exceptions = [
     i[1] for i in inspect.getmembers(sys.modules[__name__], inspect.isclass)
 ]
@@ -121,7 +138,6 @@ def get_error_message(ctx: commands.Context, error: commands.CommandError):
         return response.format(
             ctx=ctx,
             error=error,
-            prefix=ctx.prefix,
             retry_after=retry_after,
             missing_perms=missing_perms,
             missing_roles=missing_roles,

@@ -1,24 +1,20 @@
 import sys
+from collections import namedtuple
 from os import getenv
 from random import choice
-from typing import Any
+from typing import Any, Optional
 
 import asyncpg
 from ai.analyser import analyse_sample
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
+from utils import errors
 from utils.constants import SPAM_VERIFICATION_THRESHOLD
 from utils.db_updater import update_db
+from utils.dis_logging import GuildLogger
 from utils.enums import BlacklistMode, FetchMode
-from utils.errors import (
-    AlreadyIgnored,
-    AlreadyManager,
-    NotIgnored,
-    NotManager,
-    WordAlreadyExists,
-    WordNotFound,
-)
+from utils.filters.blacklist import preformat
 
 load_dotenv()
 
@@ -30,6 +26,8 @@ PASSWORD = getenv("PASSWORD")
 if DATABASE is None:
     print(".env file not filled up properly")
     sys.exit(1)
+
+warnings_data = namedtuple("warnings_data", ["timeout_duration", "warnings_threshold"])
 
 
 class Database:
@@ -77,7 +75,7 @@ class Database:
         with open(filename, "r") as f:
             async with self._pool.acquire() as con:
                 con: asyncpg.Connection
-                for sql in f.read().split(";"):
+                for sql in f.read().split(";\n"):
                     if len(sql) <= 1:
                         continue
                     await con.execute(sql)
@@ -166,6 +164,15 @@ class BlacklistData(SubData):
     __slots__ = ["enabled", "ignored", "common", "wild", "super", "filter_enabled"]
 
 
+class WhitelistData(SubData):
+    _guild: "GuildData"
+    enabled: bool
+    characters: str
+    ignored: list[int]
+
+    __slots__ = ["enabled", "characters", "ignored"]
+
+
 class GuildData:
     id: int
 
@@ -179,6 +186,16 @@ class GuildData:
         )
 
     async def _select(self, args: str, fetch_mode: FetchMode = FetchMode.ROW):
+        args_amount = len(args.split(","))
+        if fetch_mode == FetchMode.VAL and args_amount > 1:
+            self._db.log.warning(
+                "Selection of multiple fields with FetchMode.VAL: %s", args
+            )
+        elif fetch_mode != FetchMode.VAL and args_amount <= 1:
+            self._db.log.warning(
+                "Selection of single field with %s: %s:", fetch_mode, args
+            )
+
         await self._validate_existence()
         return await self._db.execute(
             f"SELECT {args} FROM guilds WHERE id = $1", self.id, fetch_mode=fetch_mode
@@ -216,7 +233,7 @@ class GuildData:
     async def add_automod_manager(self, value: int):
         managers = await self.get_automod_managers()
         if value in managers:
-            raise AlreadyManager(value)
+            raise errors.AlreadyManager(value)
 
         managers.append(value)
         await self._update(automod_managers=managers)
@@ -226,7 +243,7 @@ class GuildData:
             managers = await self.get_automod_managers()
             managers.remove(value)
         except ValueError:
-            raise NotManager(value)
+            raise errors.NotManager(value)
 
         await self._update(automod_managers=managers)
 
@@ -236,7 +253,7 @@ class GuildData:
     async def add_antispam_ignored(self, value: int):
         ignored = await self._select("antispam_ignored", FetchMode.VAL)
         if value in ignored:
-            raise AlreadyIgnored(value)
+            raise errors.AlreadyIgnored(value)
 
         ignored.append(value)
         await self._update(antispam_ignored=ignored)
@@ -247,7 +264,7 @@ class GuildData:
             ignored.remove(value)
             await self._update(antispam_ignored=ignored)
         except ValueError:
-            raise NotIgnored(value)
+            raise errors.NotIgnored(value)
 
     async def set_blacklist_enabled(self, value: bool):
         await self._update(blacklist_enabled=value)
@@ -258,7 +275,7 @@ class GuildData:
     async def add_blacklist_ignored(self, value: int):
         ignored = await self._select("blacklist_ignored", FetchMode.VAL)
         if value in ignored:
-            raise AlreadyIgnored(value)
+            raise errors.AlreadyIgnored(value)
 
         ignored.append(value)
         await self._update(blacklist_ignored=ignored)
@@ -269,7 +286,7 @@ class GuildData:
             ignored.remove(value)
             await self._update(blacklist_ignored=ignored)
         except ValueError:
-            raise NotIgnored(value)
+            raise errors.NotIgnored(value)
 
     async def add_blacklist_word(self, value: str, mode: BlacklistMode):
         current: list[str] = await self._select(
@@ -277,10 +294,25 @@ class GuildData:
         )
 
         if value in current:
-            raise WordAlreadyExists(value, mode.value)
+            raise errors.WordAlreadyExists(value, mode.value)
 
         current.append(value)
-        await self._update(**{"blacklist_" + mode.value: current})
+        try:
+            await self._update(**{"blacklist_" + mode.value: current})
+        except asyncpg.CheckViolationError:
+            raise errors.WordsThresholdExceeded()
+
+    async def addmany_blacklist_words(self, words: list[str], mode: BlacklistMode):
+        current: set[str] = set(
+            await self._select("blacklist_" + mode.value, FetchMode.VAL)
+        )
+        words = set(map(lambda s: preformat(s, mode), words))
+
+        current |= words
+        try:
+            await self._update(**{"blacklist_" + mode.value: current})
+        except asyncpg.CheckViolationError:
+            raise errors.WordsThresholdExceeded()
 
     async def remove_blacklist_word(self, value: str, mode: BlacklistMode):
         current: list[str] = await self._select(
@@ -290,4 +322,127 @@ class GuildData:
             current.remove(value)
             await self._update(**{"blacklist_" + mode.value: current})
         except ValueError:
-            raise WordNotFound(value, mode.value)
+            raise errors.WordNotFound(value, mode.value)
+
+    async def clear_blacklist(self, mode: Optional[BlacklistMode] = None):
+        if mode is None:
+            await self._update(
+                blacklist_common=[], blacklist_wild=[], blacklist_super=[]
+            )
+        else:
+            await self._update(**{"blacklist_" + mode.value: []})
+
+    async def get_whitelist_data(self) -> WhitelistData:
+        data = WhitelistData(self)
+        await data.load()
+
+        return data
+
+    async def set_whitelist_enabled(self, value: bool):
+        await self._update(whitelist_enabled=value)
+
+    async def set_whitelist_characters(self, value: str):
+        await self._update(whitelist_characters=value)
+
+    async def add_whitelist_ignored(self, value: int):
+        ignored = await self._select("whitelist_ignored", FetchMode.VAL)
+        if value in ignored:
+            raise errors.AlreadyIgnored(value)
+
+        ignored.append(value)
+        await self._update(whitelist_ignored=ignored)
+
+    async def remove_whitelist_ignored(self, value: int):
+        try:
+            ignored = await self._select("whitelist_ignored", FetchMode.VAL)
+            ignored.remove(value)
+            await self._update(whitelist_ignored=ignored)
+        except ValueError:
+            raise errors.NotIgnored(value)
+
+    async def get_nickfilter_data(self) -> tuple[bool, list[int]]:
+        """Returns
+        ----------
+        `enabled, ignored = await guild.get_nickfilter_data()`"""
+        return tuple(
+            (await self._select("nickfilter_enabled, nickfilter_ignored")).values()
+        )
+
+    async def set_nickfilter_enabled(self, value: bool):
+        await self._update(nickfilter_enabled=value)
+
+    async def add_nickfilter_ignored(self, value: int):
+        ignored = await self._select("nickfilter_ignored", FetchMode.VAL)
+        if value in ignored:
+            raise errors.AlreadyIgnored(value)
+
+        ignored.append(value)
+        await self._update(nickfilter_ignored=ignored)
+
+    async def remove_nickfilter_ignored(self, value: int):
+        try:
+            ignored = await self._select("nickfilter_ignored", FetchMode.VAL)
+            ignored.remove(value)
+            await self._update(nickfilter_ignored=ignored)
+        except ValueError:
+            raise errors.NotIgnored(value)
+
+    async def add_rule(self, key: str, value: str):
+        try:
+            await self._db.execute(
+                "INSERT INTO rules (id, rule_key, rule_text) VALUES ($1, $2, $3)",
+                self.id,
+                key,
+                value,
+            )
+        except asyncpg.UniqueViolationError:
+            raise errors.RuleAlreadyExists(key)
+
+    async def remove_rule(self, key: str):
+        await self._db.execute(
+            "DELETE FROM rules WHERE id = $1 AND rule_key = $2", self.id, key
+        )
+
+    async def get_rule(self, key: str) -> str:
+        val = await self._db.execute(
+            "SELECT rule_key FROM rules WHERE id = $1 AND rule_key = $2",
+            self.id,
+            key,
+            fetch_mode=FetchMode.VAL,
+        )
+        if val is None:
+            raise errors.RuleNotFound(key)
+
+        return val
+
+    async def get_all_rules(self) -> Optional[dict[str, str]]:
+        rows = await self._db.execute(
+            "SELECT rule_key, rule_text FROM rules WHERE id = $1",
+            self.id,
+            fetch_mode=FetchMode.ALL,
+        )
+        if len(rows) == 0:
+            return None
+
+        return {r["rule_key"]: r["rule_text"] for r in rows}
+
+    async def get_log_channel_id(self) -> Optional[int]:
+        return await self._select("log_channel", fetch_mode=FetchMode.VAL)
+
+    async def set_log_channel_id(self, id: int):
+        await self._update(log_channel=id)
+
+    async def get_logger(self, bot) -> GuildLogger:
+        log = GuildLogger()
+        await log.load(bot, self.id)
+        return log
+
+    async def get_warnings_data(self) -> warnings_data:
+        r = await self._select("warnings_threshold, timeout_duration")
+        return warnings_data(r["timeout_duration"], r["warnings_threshold"])
+
+    async def set_timeout_duration(self, value: int):
+        await self._update(timeout_duration=value)
+
+    async def set_warnings_threshold(self, value: int):
+        await self._update(warnings_threshold=value)

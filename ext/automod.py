@@ -1,37 +1,26 @@
-from datetime import timedelta
+import json
 
 import disnake
 from ai.predictor import is_spam
-from disnake.ext import commands, tasks
-from utils.blacklist import is_blacklisted, preformat
+from disnake.ext import commands
 from utils.bot import Bot
+from utils.checks import is_automod_manager
 from utils.constants import MAX_BLACKLIST_QUEUE_SIZE, MAX_SPAM_QUEUE_SIZE
-from utils.embeds import BaseEmbed
-from utils.enums import BlacklistMode
-from utils.errors import ManagerOnly
-from utils.utils import Queue
+from utils.embeds import BaseEmbed, SuccessEmbed, WarningEmbed
+from utils.enums import BlacklistMode, ViewResponse
+from utils.filters.blacklist import is_blacklisted, preformat
+from utils.filters.whitelist import contains_fonts
+from utils.nicknames import generate_random_nick
+from utils.utils import Queue, try_send
+from utils.views import BaseView, Button, ConfirmationView
 
 
 class Automod(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.warnings: dict[int, dict[int, int]] = {}
         self.antispam_queue: dict[int, dict[int, Queue[disnake.Message]]] = {}
         self.blacklist_queue: dict[int, dict[int, Queue[disnake.Message]]] = {}
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
-
-        self.warnings_reseter.start()
-
-    @tasks.loop(minutes=5)
-    async def warnings_reseter(self):
-        for guild_id in self.warnings:
-            for member_id in self.warnings[guild_id]:
-                if self.warnings[guild_id][member_id] > 0:
-                    self.warnings[guild_id][member_id] -= 1
-
-    @warnings_reseter.before_loop
-    async def loop_waiter(self):
-        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
@@ -41,36 +30,44 @@ class Automod(commands.Cog):
         if message.author.guild_permissions.manage_guild:
             return
 
-        if await self._process_antispam(message):
+        if await self._process_whitelist(message):
+            return
+
+        elif await self._process_antispam(message):
             return
 
         elif await self._process_blacklist(message):
             return
 
-    def _get_warnings(self, author: disnake.Member):
-        if not author.guild.id in self.warnings:
-            self.warnings[author.guild.id] = {author.id: 0}
-            return 0
-        elif not author.id in self.warnings[author.guild.id]:
-            self.warnings[author.guild.id][author.id] = 0
-            return 0
-        else:
-            return self.warnings[author.guild.id][author.id]
+    @commands.Cog.listener()
+    async def on_member_update(self, before: disnake.Member, after: disnake.Member):
 
-    async def _add_warning(self, message: disnake.Message):
-        current_warnings = self._get_warnings(message.author)
-        self.warnings[message.guild.id][message.author.id] += 1
-        if current_warnings >= 3:
-            await message.channel.send(
-                f"{self.bot.sys_emojis.checkmark} {message.author.mention} enjoy your mute!"
+        if before.nick == after.nick:
+            return
+
+        await self._process_nickfilter(after)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: disnake.Member):
+        await self._process_nickfilter(member)
+
+    async def _process_nickfilter(self, member: disnake.Member) -> bool:
+        guild_data = self.bot.db.get_guild(member.guild.id)
+        enabled, ignored = await guild_data.get_nickfilter_data()
+        if not enabled or any(r.id in ignored for r in member.roles):
+            return
+
+        bl = await guild_data.get_blacklist_data()
+        old_nick = member.display_name
+        if is_blacklisted(bl, old_nick)[0]:
+            nick = generate_random_nick()
+            await member.edit(nick=nick)
+            await try_send(
+                member,
+                f"Your current name on **{member.guild.name}** does not pass its blacklist filter, so you were given randomly generated **{nick}** nickname.",
             )
-            await message.author.timeout(
-                duration=timedelta(minutes=15), reason="Warnings threshold exceed."
-            )  # TODO: should be customizable
-            self.warnings[message.guild.id][message.author.id] += 1
-            return -1
-        else:
-            return 3 - current_warnings
+            log = await guild_data.get_logger(self.bot)
+            await log.log_nick_change(member, old_nick, nick)
 
     async def _process_antispam_queue(self, message: disnake.Message) -> bool:
         if not message.guild.id in self.antispam_queue:
@@ -92,13 +89,19 @@ class Automod(commands.Cog):
             queue.add(message)
             full_content = " ".join([m.content for m in queue])
             if is_spam(full_content):
-                warnings = await self._add_warning(message)
+                warnings = await self.bot.warnings.add_warning(message)
                 if warnings != -1:
                     await message.channel.send(
-                        f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
-{message.author.mention} **stop spamming!** \n\
-*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
+                        f"**{message.author.mention} stop spamming!**",
+                        embed=WarningEmbed(
+                            message,
+                            title="Spam Blocked",
+                            description=f"A sequence of messages ({len(queue)}) sent by {message.author.mention} was deleted.\n\
+This member will be muted in **{warnings} warnings.**",
+                        ),
                     )
+                log = await self.bot.db.get_guild(message.guild.id).get_logger(self.bot)
+                await log.log_queue_deletion(message.author, message.channel, queue)
                 await message.channel.delete_messages(queue)
                 queue.clear()
                 return True
@@ -124,41 +127,87 @@ class Automod(commands.Cog):
             queue = self.blacklist_queue[message.guild.id][message.author.id]
             queue.add(message)
             full_content = " ".join([m.content for m in queue])
+            guild_data = self.bot.db.get_guild(message.guild.id)
             if is_blacklisted(
-                await self.bot.db.get_guild(message.guild.id).get_blacklist_data(),
+                await guild_data.get_blacklist_data(),
                 full_content,
             )[0]:
-                warnings = await self._add_warning(message)
+                warnings = await self.bot.warnings.add_warning(message)
                 if warnings != -1:
                     await message.channel.send(
-                        f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
-{message.author.mention} **do not curse!** \n\
-*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
+                        f"**{message.author.mention} do not curse!**",
+                        embed=WarningEmbed(
+                            message,
+                            title="Blacklisted Expression Blocked",
+                            description=f"A sequence of messages ({len(queue)}) sent by {message.author.mention} was deleted.\n\
+This member will be muted in **{warnings} warnings.**",
+                        ),
                     )
+                log = await guild_data.get_logger(self.bot)
+                await log.log_queue_deletion(message.author, message.channel, queue)
                 await message.channel.delete_messages(queue)
                 queue.clear()
                 return True
 
         return False
 
+    async def _process_whitelist(self, message: disnake.Message):
+        guild_data = self.bot.db.get_guild(message.guild.id)
+        data = await guild_data.get_whitelist_data()
+        if (
+            not data.enabled
+            or message.channel.id in data.ignored
+            or any(r.id in data.ignored for r in message.author.roles)
+        ):
+            return False
+
+        is_fonted, chars = contains_fonts(data.characters, message.content)
+
+        if is_fonted:
+            await message.delete()
+            if len(chars) > 10:
+                chars = chars[:10]
+            await message.channel.send(
+                embed=WarningEmbed(
+                    message,
+                    title="Fonts Detected",
+                    description=f"{message.author.mention}, your message was removed because it contains blacklisted symbols.\n\
+Blocked symbols: `{'`, `'.join(chars)}`.",
+                )
+            )
+            log = await guild_data.get_logger(self.bot)
+            await log.log_single_deletion(
+                message.author, message.channel, message.content
+            )
+            return True
+
+        return False
+
     async def _process_antispam(self, message: disnake.Message) -> bool:
-        antispam = await self.bot.db.get_guild(message.guild.id).get_antispam_data()
+        guild_data = self.bot.db.get_guild(message.guild.id)
+        antispam = await guild_data.get_antispam_data()
         if (
             not antispam.enabled
             or message.channel.id in antispam.ignored
-            or any([r.id in antispam.ignored for r in message.author.roles])
+            or any(r.id in antispam.ignored for r in message.author.roles)
         ):
             return False
 
         if is_spam(message.content):
             await message.delete()
-            warnings = await self._add_warning(message)
+            warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
                 await message.channel.send(
-                    f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
-{message.author.mention} **stop spamming!** \n\
-*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
+                    f"**{message.author.mention}, stop spamming!**",
+                    embed=WarningEmbed(
+                        message,
+                        title="Spam Blocked",
+                        description=f"A message sent by {message.author.mention} was deleted.\n\
+This member will be muted in **{warnings} warnings.**",
+                    ),
                 )
+            log = await guild_data.get_logger(self.bot)
+            await log.log_antispam(message.author, message.channel, message.content)
             return True
         else:
             return await self._process_antispam_queue(message)
@@ -169,7 +218,7 @@ class Automod(commands.Cog):
         if (
             not blacklist.enabled
             or message.channel.id in blacklist.ignored
-            or any([r.id in blacklist.ignored for r in message.author.roles])
+            or any(r.id in blacklist.ignored for r in message.author.roles)
         ):
             return False
 
@@ -177,20 +226,23 @@ class Automod(commands.Cog):
 
         if is_curse:
             await message.delete()
-            if expr is not None:
-                await message.channel.send(
-                    embed=BaseEmbed(
-                        message,
-                        "Cursing Detected",
-                        f"Message authored by {message.author.mention} was deleted. Censoured version:\n```{expr}```",
-                    )
-                )
-            warnings = await self._add_warning(message)
+            warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
+                embed = WarningEmbed(
+                    message,
+                    title="Blacklisted Expression Blocked",
+                    description=f"A message sent by {message.author.mention} was deleted for containing blacklisted expressions.\n\
+    This member will be muted in **{warnings} warnings.**",
+                )
+                if expr is not None:
+                    embed.add_field("Censoured Version", f"```{expr}```", inline=False)
+
                 await message.channel.send(
-                    f"{self.bot.sys_emojis.warning if warnings > 1 else self.bot.sys_emojis.exclamation} | \
-{message.author.mention} **do not curse!** \n\
-*You will be muted in **{warnings}** warning{'s' if warnings > 1 else ''}.*"
+                    f"**{message.author.mention}, do not curse!**", embed=embed
+                )
+                log = await guild.get_logger(self.bot)
+                await log.log_single_deletion(
+                    message.author, message.channel, message.content
                 )
         else:
             return await self._process_blacklist_queue(message)
@@ -200,19 +252,13 @@ class Automod(commands.Cog):
 class BlacklistManagement(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
+        with open("res/templates/blacklist.json", "r") as f:
+            self.templates: dict[str, list[str]] = json.load(f)
 
     async def cog_slash_command_check(
         self, inter: disnake.ApplicationCommandInteraction
     ) -> bool:
-        managers = await self.bot.db.get_guild(inter.guild.id).get_automod_managers()
-        if (
-            inter.author.id in managers
-            or inter.author.guild_permissions.manage_guild
-            or any(r in managers for r in [role.id for role in inter.author.roles])
-        ):
-            return True
-
-        raise ManagerOnly()
+        return await is_automod_manager(self.bot, inter)
 
     @commands.slash_command(name="blacklist")
     async def blacklist_group(self, *_):
@@ -224,15 +270,19 @@ class BlacklistManagement(commands.Cog):
     async def blacklist_enable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_blacklist_enabled(True)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully enabled blacklist for this server.**"
+            embed=SuccessEmbed(inter, "Successfully enabled blacklist for this server.")
         )
 
     @blacklist_group.sub_command(
-        name="disable", description="Disaales blacklist filtering."
+        name="disable", description="Disables blacklist filtering."
     )
     async def blacklist_disable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_blacklist_enabled(False)
-        await inter.send(f"Successfully disabled blacklist for this server.")
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, "Successfully disabled blacklist for this server."
+            )
+        )
 
     @blacklist_group.sub_command(
         name="setfilter",
@@ -243,8 +293,10 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).set_blacklist_filter_enabled(value)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | \
-**Successfully {'enabled' if value else 'disabled'} blacklist filter fot this server.**"
+            embed=SuccessEmbed(
+                inter,
+                f"Successfully {'enabled' if value else 'disabled'} blacklist filter fot this server.",
+            )
         )
 
     @blacklist_group.sub_command(
@@ -272,6 +324,20 @@ class BlacklistManagement(commands.Cog):
         await inter.send(embed=embed, ephemeral=hidden)
 
     @blacklist_group.sub_command(
+        name="templates",
+        description="Load the word blacklist from the standart template. This preserves already existing words.",
+    )
+    async def blacklist_template(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.defer()
+        guild_data = self.bot.db.get_guild(inter.guild.id)
+        for mode in BlacklistMode:
+            await guild_data.addmany_blacklist_words(self.templates[mode.value], mode)
+
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully loaded blacklist from template.")
+        )
+
+    @blacklist_group.sub_command(
         name="add", description="Adds a new blacklisted expression."
     )
     async def blacklist_add(
@@ -287,7 +353,32 @@ class BlacklistManagement(commands.Cog):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_word(expression, mode)
 
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully added new word to the `{mode.value}` blacklist!**"
+            embed=SuccessEmbed(
+                inter, f"Successfully added new word to the `{mode.value}` blacklist!"
+            )
+        )
+
+    @blacklist_group.sub_command(
+        name="addmany",
+        description="Adds several words to the blacklist. The words must be separated by commas.",
+    )
+    async def blacklist_addmany(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        mode: BlacklistMode = commands.Param(
+            description="See the `/blacklist list` for more info about modes."
+        ),
+        words: str = commands.Param(description="The words separated by commas."),
+    ):
+        mode = BlacklistMode(mode)
+        await inter.response.defer()
+        await self.bot.db.get_guild(inter.guild.id).addmany_blacklist_words(
+            words.split(","), mode
+        )
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Successfully added new words to the `{mode.value}` blacklist!"
+            )
         )
 
     @blacklist_group.sub_command(
@@ -307,8 +398,44 @@ class BlacklistManagement(commands.Cog):
         )
 
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully removed `{expression}` from the `{mode.value}` blacklist!**"
+            embed=SuccessEmbed(
+                inter,
+                f"Successfully removed `{expression}` from the `{mode.value}` blacklist!",
+            )
         )
+
+    @blacklist_group.sub_command(
+        name="clear", description="Clears a certain blacklist (or all)."
+    )
+    async def blacklist_clear(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        mode: str = commands.Param(choices=[m.value for m in BlacklistMode] + ["all"]),
+    ):
+        if mode == "all":
+            mode = None
+        else:
+            mode = BlacklistMode(mode)
+
+        view = ConfirmationView(inter.author.id)
+        await inter.send(
+            embed=WarningEmbed(
+                inter,
+                title="Confirm Action",
+                description=f"Are you sure you want to clear {'**all** blacklists?' if mode is None else mode.value + ' blacklist?'}",
+            ),
+            view=view,
+        )
+        res, inter = await view.get_result()
+        if res == ViewResponse.YES:
+            await self.bot.db.get_guild(inter.guild.id).clear_blacklist(mode)
+            await inter.send(
+                embed=SuccessEmbed(
+                    inter, "Successfully cleared the requested blacklist."
+                )
+            )
+        else:
+            await inter.send(f"Operation cancelled.", delete_after=3)
 
     @blacklist_group.sub_command_group(name="ignore")
     async def blacklist_ignore(self, *_):
@@ -322,7 +449,9 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_ignored(role.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Added {role.mention} to blacklist ignored roles.**"
+            embed=SuccessEmbed(
+                inter, f"Added {role.mention} to blacklist ignored roles."
+            )
         )
 
     @blacklist_ignore.sub_command(
@@ -333,7 +462,9 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_ignored(channel.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Added {channel.mention} to the blacklist ignored channels.**"
+            embed=SuccessEmbed(
+                inter, f"Added {channel.mention} to the blacklist ignored channels."
+            )
         )
 
     @blacklist_ignore.sub_command(
@@ -345,7 +476,9 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_ignored(role.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Removed {role.mention} from the blacklist ignored roles.**"
+            embed=SuccessEmbed(
+                inter, f"Removed {role.mention} from the blacklist ignored roles."
+            )
         )
 
     @blacklist_ignore.sub_command(
@@ -357,7 +490,9 @@ class BlacklistManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_ignored(channel.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Removed {channel.mention} from the blacklist ignored channels.**"
+            embed=SuccessEmbed(
+                inter, f"Removed {channel.mention} from the blacklist ignored channels."
+            )
         )
 
 
@@ -368,8 +503,7 @@ class AntiSpamManagement(commands.Cog):
     async def cog_slash_command_check(
         self, inter: disnake.ApplicationCommandInteraction
     ):
-        # basically copying the slash check from blacklist management, might bring this out to external function
-        return await BlacklistManagement.cog_slash_command_check(self, inter)
+        return await is_automod_manager(self.bot, inter)
 
     @commands.slash_command(name="antispam")
     async def antispam_group(self, *_):
@@ -381,16 +515,16 @@ class AntiSpamManagement(commands.Cog):
     async def antispam_enable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_antispam_enabled(True)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully enabled antispam for this guild.**"
+            embed=SuccessEmbed(inter, "Successfully enabled antispam for this guild.")
         )
 
     @antispam_group.sub_command(
-        name="disable", description="Disaales antispam filtering."
+        name="disable", description="Disables antispam filtering."
     )
     async def antispam_disable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_antispam_enabled(False)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully disabled antispam for this guild.**"
+            embed=SuccessEmbed(inter, "Successfully disabled antispam for this guild.")
         )
 
     @antispam_group.sub_command_group(name="ignore")
@@ -405,18 +539,23 @@ class AntiSpamManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).add_antispam_ignored(role.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Added {role.mention} to antispam ignored roles.**"
+            embed=SuccessEmbed(
+                inter, f"Added {role.mention} to antispam ignored roles."
+            )
         )
 
     @antispam_ignore.sub_command(
-        name="addchannel", description="Adds a channel to the antispam ignored roles."
+        name="addchannel",
+        description="Adds a channel to the antispam ignored channels.",
     )
     async def as_addchannel(
         self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).add_antispam_ignored(channel.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Added {channel.mention} to the antispam ignored channels.**"
+            embed=SuccessEmbed(
+                inter, f"Added {channel.mention} to the antispam ignored channels."
+            )
         )
 
     @antispam_ignore.sub_command(
@@ -428,23 +567,320 @@ class AntiSpamManagement(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_antispam_ignored(role.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Removed {role.mention} from the antispam ignored roles.**"
+            embed=SuccessEmbed(
+                inter, f"Removed {role.mention} from the antispam ignored roles"
+            )
         )
 
     @antispam_ignore.sub_command(
         name="removechannel",
-        description="Removes a channel from the antispam ignored roles.",
+        description="Removes a channel from the antispam ignored channels.",
     )
     async def as_removechannel(
         self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_antispam_ignored(channel.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Removed {channel.mention} from the antispam ignored channels.**"
+            embed=SuccessEmbed(
+                inter, f"Removed {channel.mention} from the antispam ignored channels."
+            )
+        )
+
+
+class WhitelistManagement(commands.Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+        with open("res/templates/whitelist.json", "r") as f:
+            self.templates: dict[str, str] = json.load(f)
+
+    async def cog_slash_command_check(
+        self, inter: disnake.ApplicationCommandInteraction
+    ):
+        return await is_automod_manager(self.bot, inter)
+
+    @commands.slash_command(name="whitelist")
+    async def whitelist_group(self, *_):
+        pass
+
+    @whitelist_group.sub_command(
+        name="enable", description="Enables character whitelist."
+    )
+    async def whitelist_enable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_whitelist_enabled(True)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully enabled whitelist for this guild.")
+        )
+
+    @whitelist_group.sub_command(
+        name="disable", description="Disables whitelist filtering."
+    )
+    async def whitelist_disable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_whitelist_enabled(False)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully disabled whitelist for this guild.")
+        )
+
+    @whitelist_group.sub_command(
+        name="setcharacters",
+        description="Sets the characters that should be **only** be allowed in this server.",
+    )
+    async def whitelist_setcharacters(
+        self, inter: disnake.ApplicationCommandInteraction, characters: str
+    ):
+        guild_data = self.bot.db.get_guild(inter.guild.id)
+        data = await guild_data.get_whitelist_data()
+        view = ConfirmationView(inter.author.id)
+        await inter.send(
+            embed=BaseEmbed(
+                inter,
+                f"{self.bot.sys_emojis.warning} Confirm Action",
+                f"You are going to change the whitelisted characters.\n\
+The whitelist is currently **{'enabled' if data.enabled else 'disabled'}**\n\
+Current whitelisted characters: ```{data.characters}```\n\
+**WARNING**\nAdding new set of characters will overwrite the existing ones. \
+Please do not add uppercase symbols because all the messages are converted to lowercase.\n\n\
+__**Are you sure you want to overwrite the existing characters with the new ones?**__\n\
+```{data.characters}``` --> ```{characters}```",
+            ),
+            view=view,
+        )
+        res, inter = await view.get_result()
+        if res == ViewResponse.YES:
+            characters = "".join(set(characters.lower()))
+            await guild_data.set_whitelist_characters(characters)
+            await inter.send(
+                embed=SuccessEmbed(
+                    inter, "Successfully updated the whitelisted characters."
+                )
+            )
+        else:
+            await inter.send(f"Operation cancelled.", delete_after=3)
+
+    @whitelist_group.sub_command(
+        name="templates", description="Load a prepared whitelist template."
+    )
+    async def whitelist_templates(self, inter: disnake.ApplicationCommandInteraction):
+        embed = BaseEmbed(
+            inter,
+            "Please choose a template",
+            "Press the corresponding button to select a template. **THIS WILL __OVERWRITE__ THE CURRENT WHITELISTED CHARACTERS!**",
+        )
+        view = BaseView(inter.author.id, [])
+        for name, value in self.templates.items():
+            embed.add_field(name.capitalize(), f"```{value}```", inline=False)
+            view.add_item(Button(name, label=name, style=disnake.ButtonStyle.blurple))
+
+        view.add_item(Button("cancel", label="Cancel", style=disnake.ButtonStyle.red))
+
+        await inter.send(embed=embed, view=view)
+        res, inter = await view.get_result()
+        if res == "cancel":
+            await inter.send(f"Operation cancelled.")
+            return
+
+        await self.bot.db.get_guild(inter.guild.id).set_whitelist_characters(
+            self.templates[res]
+        )
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, "Successfully updated the whitelisted characters."
+            )
+        )
+
+    @whitelist_group.sub_command_group(name="ignore")
+    async def whitelist_ignore(self, *_):
+        pass
+
+    @whitelist_ignore.sub_command(
+        name="addrole", description="Adds a role to the whitelist ignored roles."
+    )
+    async def wl_addrole(
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+    ):
+        await self.bot.db.get_guild(inter.guild.id).add_whitelist_ignored(role.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Added {role.mention} to whitelist ignored roles."
+            )
+        )
+
+    @whitelist_ignore.sub_command(
+        name="addchannel",
+        description="Adds a channel to the whitelist ignored channels.",
+    )
+    async def wl_addchannel(
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+    ):
+        await self.bot.db.get_guild(inter.guild.id).add_whitelist_ignored(channel.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Added {channel.mention} to the whitelist ignored channels."
+            )
+        )
+
+    @whitelist_ignore.sub_command(
+        name="removerole",
+        description="Removes a role from the whitelist ignored roles.",
+    )
+    async def wl_removerole(
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+    ):
+        await self.bot.db.get_guild(inter.guild.id).remove_whitelist_ignored(role.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Removed {role.mention} from the whitelist ignored roles."
+            )
+        )
+
+    @whitelist_ignore.sub_command(
+        name="removechannel",
+        description="Removes a channel from the whitelist ignored channels.",
+    )
+    async def wl_removechannel(
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+    ):
+        await self.bot.db.get_guild(inter.guild.id).remove_whitelist_ignored(channel.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Removed {channel.mention} from the whitelist ignored channels."
+            )
+        )
+
+
+class NickfilterManagement(commands.Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    async def cog_slash_command_check(
+        self, inter: disnake.ApplicationCommandInteraction
+    ) -> bool:
+        return await is_automod_manager(self.bot, inter)
+
+    @commands.slash_command(name="nickfilter")
+    async def nickfilter_group(self, *_):
+        pass
+
+    @nickfilter_group.sub_command(name="enable", description="Enables NickFilter.")
+    async def nickfilter_enable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_nickfilter_enabled(True)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully enabled NickFilter for this guild.")
+        )
+
+    @nickfilter_group.sub_command(name="disable", description="Disables NickFilter.")
+    async def nickfilter_disable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_nickfilter_enabled(False)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, "Successfully disabled NickFilter for this guild."
+            )
+        )
+
+    @nickfilter_group.sub_command_group(name="ignore")
+    async def nickfilter_ignore(self, *_):
+        pass
+
+    @nickfilter_ignore.sub_command(
+        name="addrole", description="Adds a role to the NickFilter ignored roles."
+    )
+    async def nf_addrole(
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+    ):
+        await self.bot.db.get_guild(inter.guild.id).add_nickfilter_ignored(role.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Added {role.mention} to NickFilter ignored roles."
+            )
+        )
+
+    @nickfilter_ignore.sub_command(
+        name="removerole",
+        description="Removes a role from the NickFilter ignored roles.",
+    )
+    async def nf_removerole(
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+    ):
+        await self.bot.db.get_guild(inter.guild.id).remove_nickfilter_ignored(role.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Removed {role.mention} from the NickFilter ignored roles."
+            )
+        )
+
+
+class Automation(commands.Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    async def cog_message_command_check(
+        self, inter: disnake.ApplicationCommandInteraction
+    ) -> bool:
+        if inter.author.guild_permissions.manage_messages:
+            return True
+
+        raise commands.MissingPermissions("manage_messages")
+
+    @commands.message_command(name="Delete and Warn")
+    async def delete_and_warn(
+        self, inter: disnake.MessageCommandInteraction, message: disnake.Message
+    ):
+        await message.delete()
+        warnings = await self.bot.warnings.add_warning(message)
+        if warnings != -1:
+            await inter.send(
+                embed=WarningEmbed(
+                    message,
+                    title="Message Blocked",
+                    description=f"A message sent by {message.author.mention} was deleted by {inter.author.mention}.\n\
+This member will be muted in **{warnings} warnings.**",
+                ),
+            )
+        else:
+            await inter.send(f"Member was muted", ephemeral=True)
+
+
+class AutotimeoutManagement(commands.Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    async def cog_slash_command_check(
+        self, interaction: disnake.ApplicationCommandInteraction
+    ):
+        return await is_automod_manager(self.bot, interaction)
+
+    @commands.slash_command(
+        name="setwarningsthreshold",
+        description="Sets the warnings threshold - the amount of warnings member receives before getting timeouted.",
+    )
+    async def setwarningsthreshold(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        amount: int = commands.Param(gt=0, le=10),
+    ):
+        await self.bot.db.get_guild(inter.guild.id).set_warnings_threshold(amount)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Successfully set warnings threshold to `{amount}`"
+            )
+        )
+
+    @commands.slash_command(
+        name="settimeoutduration", description="Sets the timeout duration for automod."
+    )
+    async def settimeoutduration(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        duration: int = commands.Param(
+            description="The duration in minutes.", gt=0, le=80000
+        ),
+    ):
+        await self.bot.db.get_guild(inter.guild.id).set_timeout_duration(duration)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Successfully set timeout duration to `{duration} m`"
+            )
         )
 
 
 def setup(bot: Bot):
-    bot.add_cog(Automod(bot))
-    bot.add_cog(BlacklistManagement(bot))
-    bot.add_cog(AntiSpamManagement(bot))
+    bot.auto_setup(__name__)

@@ -1,11 +1,15 @@
-from typing import Any
+from typing import Generic, TypeVar
+
 import disnake
 
+from utils.embeds import BaseEmbed
 from utils.enums import ViewResponse
 
+T = TypeVar("T")
 
-class Button(disnake.ui.Button):
-    def __init__(self, return_value=None, **kwargs):
+
+class Button(disnake.ui.Button, Generic[T]):
+    def __init__(self, return_value: T = None, **kwargs):
         super().__init__(**kwargs)
         self.return_value = return_value
 
@@ -14,9 +18,9 @@ class Button(disnake.ui.Button):
         self.view.set_value(self.return_value, interaction)
 
 
-class BaseView(disnake.ui.View):
-    def __init__(self, user_id: int, buttons: list[Button]):
-        self.value = None
+class BaseView(disnake.ui.View, Generic[T]):
+    def __init__(self, user_id: int, buttons: list[Button[T]]):
+        self.value: T = None
         self.inter: disnake.MessageInteraction = None
         self.user_id = user_id
         super().__init__()
@@ -35,8 +39,12 @@ class BaseView(disnake.ui.View):
         self.inter = inter
         self.stop()
 
-    async def get_result(self) -> tuple[Any, disnake.MessageInteraction]:
+    async def get_result(self) -> tuple[T, disnake.MessageInteraction]:
         await self.wait()
+        for child in self.children:
+            child.disabled = True
+
+        await self.inter.message.edit(view=self)
         return self.value, self.inter
 
 
@@ -55,3 +63,39 @@ class PhraseProcessingView(BaseView):
                 ),
             ],
         )
+
+
+class ConfirmationView(BaseView):
+    def __init__(self, user_id: int):
+        super().__init__(
+            user_id,
+            [
+                Button(ViewResponse.YES, label="Yes", style=disnake.ButtonStyle.green),
+                Button(ViewResponse.NO, label="No", style=disnake.ButtonStyle.red),
+            ],
+        )
+
+
+class AntispamView(disnake.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @disnake.ui.button(
+        label="Not Spam", custom_id="not_spam", style=disnake.ButtonStyle.red
+    )
+    async def not_spam(self, inter: disnake.MessageInteraction):
+        embed = inter.message.embeds[0]
+        content = None
+        for proxy in embed.fields:
+            if proxy.name == "Blocked Content":
+                content = proxy.value
+                break
+
+        await inter.bot.log_channel.send(
+            embed=BaseEmbed(
+                inter,
+                "Not Spam Report",
+                f"Reported non spam message from {inter.guild.id}",
+            ).add_field("Reported Content", content)
+        )
+        await inter.message.edit(view=None)

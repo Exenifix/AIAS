@@ -1,14 +1,4 @@
-from utils.datamodels import BlacklistData
 from utils.enums import BlacklistMode
-
-
-class BlacklistData:
-    def __init__(self, common, wild, super):
-        self.common = common
-        self.wild = wild
-        self.super = super
-        self.filter_enabled = True
-
 
 BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,\n"
 SYMBOL_MASK = {
@@ -34,7 +24,7 @@ def _find_all_characters(s: str, char: str):
 
 
 def _format_expression(expr: str) -> str:
-    expr = expr.lower()
+    expr = expr.strip().lower()
     new_expr = ""
     for s in expr:
         if s in SYMBOL_MASK:
@@ -88,7 +78,7 @@ def _apply_super_blacklist_detection(
     return is_curse, "".join(expr_list)
 
 
-def is_blacklisted(bl: BlacklistData, expr: str):
+def is_blacklisted(bl, expr: str):
     expr = _format_expression(expr)
     common_is_curse, expr = _apply_common_blacklist_detection(bl.common, expr)
     if common_is_curse and not bl.filter_enabled:

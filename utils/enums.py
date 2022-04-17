@@ -19,3 +19,11 @@ class ViewResponse(Enum):
     NO = 1
     EXIT = 2
     TIMEOUT = 3
+
+
+class ActionType(Enum):
+    SINGLE_DELETION = 0
+    ANTISPAM = 1
+    QUEUE_DELETION = 2
+    TIMEOUT = 3
+    NICK_CHANGE = 4

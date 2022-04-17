@@ -1,6 +1,8 @@
 from collections import deque
 from typing import Generic, Iterator, Optional, Sequence, TypeVar
 
+from disnake import Member
+
 T = TypeVar("T")
 
 
@@ -38,3 +40,19 @@ class Queue(Generic[T]):
 
     def clear(self) -> None:
         self._data.clear()
+
+
+async def try_send(member: Member, content: Optional[str] = None, **kwargs):
+    try:
+        await member.send(content, **kwargs)
+    except:
+        pass
+
+
+def split_text(text: str, symbols_per_string: Optional[int] = 100) -> list[str]:
+    new_texts = []
+    text_length = len(text)
+    for i in range(0, text_length, symbols_per_string):
+        new_texts.append(text[i : i + symbols_per_string])
+
+    return new_texts

@@ -31,6 +31,7 @@ async def main():
     records = await con.fetch(
         "SELECT total_chars, unique_chars, total_words, unique_words, is_spam FROM data WHERE is_spam IS NOT NULL"
     )
+    await con.close()
     log.info("Preparing data... Amount of records: %s", len(records))
     data = array([list(r.values()) for r in records])
     train_x = data[:, 0:4]
