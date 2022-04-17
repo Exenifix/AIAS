@@ -132,7 +132,7 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
     ):
         fetch_mode = FetchMode(fetch_mode)
         r = await self.bot.db.execute(query, fetch_mode=fetch_mode)
-        if r is None or len(r) == 0:
+        if fetch_mode == FetchMode.NONE or r is None:
             await inter.send(f"Query was executed successfully with no return.")
 
         elif fetch_mode == FetchMode.VAL:
