@@ -52,5 +52,5 @@ class WarningEmbed(BaseEmbed):
 
 
 class ErrorEmbed(BaseEmbed):
-    def __init__(self, ctx: Contextable, *, description: str):
+    def __init__(self, ctx: Contextable, description: str):
         super().__init__(ctx, f"{emojis.exclamation} Error Occured", description)
