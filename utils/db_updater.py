@@ -30,13 +30,15 @@ async def update_db(db):
                         "ALTER TABLE guilds ADD COLUMN warnings_threshold INT DEFAULT 3 CHECK(warnings_threshold > 0 AND warnings_threshold <= 10)",
                         "ALTER TABLE guilds ADD COLUMN timeout_duration INT DEFAULT 15 CHECK(timeout_duration > 0 AND timeout_duration < 80000)",
                         "ALTER TABLE guilds ADD COLUMN whitelist_enabled BOOLEAN DEFAULT FALSE",
-                        "ALTER TABLE guilds ADD COLUMN whitelist_characters TEXT DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,",
+                        "ALTER TABLE guilds ADD COLUMN whitelist_characters TEXT DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
                         "ALTER TABLE guilds ADD COLUMN nickfilter_enabled BOOLEAN DEFAULT TRUE",
                         "ALTER TABLE guilds ADD COLUMN nickfilter_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]",
                         "ALTER TABLE guilds ADD COLUMN log_channel BIGINT",
                     ]
             for sql in sqls:
-                await db.execute(sql)
+                async with db._pool.acquire() as con:
+                    async with con.transaction():
+                        await con.execute(sql)
 
         await db.execute("UPDATE version_data SET version = $1 WHERE id = 0", version)
         db.log.info("Database is at latest version now!")
