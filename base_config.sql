@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS version_data (
     id INT UNIQUE, version INT NOT NULL
 );
 
-INSERT INTO version_data (id, version) VALUES (0, 2) ON CONFLICT DO NOTHING;
+INSERT INTO version_data (id, version) VALUES (0, 3) ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules (
     id BIGINT NOT NULL,

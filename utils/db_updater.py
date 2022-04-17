@@ -1,6 +1,6 @@
 from utils.enums import FetchMode
 
-version = 2
+version = 3
 
 
 async def update_db(db):
@@ -34,6 +34,10 @@ async def update_db(db):
                         "ALTER TABLE guilds ADD COLUMN nickfilter_enabled BOOLEAN DEFAULT TRUE",
                         "ALTER TABLE guilds ADD COLUMN nickfilter_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]",
                         "ALTER TABLE guilds ADD COLUMN log_channel BIGINT",
+                    ]
+                case 3:
+                    sqls = [
+                        "ALTER TABLE guilds ADD COLUMN whitelist_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]"
                     ]
             for sql in sqls:
                 async with db._pool.acquire() as con:
