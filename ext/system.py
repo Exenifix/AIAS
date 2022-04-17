@@ -82,7 +82,9 @@ class SystemCommands(commands.Cog):
         raise commands.NotOwner()
 
     @commands.slash_command(
-        name="exec", description="Executes some code. **Owner only**.", guild_ids=TRAIN_GUILD_IDS
+        name="exec",
+        description="Executes some code. **Owner only**.",
+        guild_ids=TRAIN_GUILD_IDS,
     )
     async def _exec(self, inter: disnake.ApplicationCommandInteraction, code: str):
         indented_code = ""
@@ -122,23 +124,36 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
     @commands.slash_command(
         name="execsql", description="Executes SQL query. **Owner only**"
     )
-    async def execsql(self, inter: disnake.ApplicationCommandInteraction, query: str, fetch_mode: FetchMode):
+    async def execsql(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        query: str,
+        fetch_mode: FetchMode,
+    ):
         fetch_mode = FetchMode(fetch_mode)
         r = await self.bot.db.execute(query, fetch_mode=fetch_mode)
         if r is None or len(r) == 0:
             await inter.send(f"Query was executed successfully with no return.")
 
         elif fetch_mode == FetchMode.VAL:
-            await inter.send(f"Query was executed successfully with return: ```py\n{r}```")
+            await inter.send(
+                f"Query was executed successfully with return: ```py\n{r}```"
+            )
 
         elif fetch_mode == FetchMode.ROW:
-            await inter.send(f"Query was executed successfully with return: ```py\n{'\t'.join(map(str, r))}```")
+            text = "\t".join(map(str, r))
+            await inter.send(
+                f"Query was executed successfully with return: ```py\n{text}```"
+            )
 
         elif fetch_mode == FetchMode.ALL:
             text = "\n".join(["\t".join(map(str, q)) for q in r])
             if len(text) > 1000:
                 text = text[:1000]
-            await inter.send(f"Query was executed successfully with return: ```py\n{text}```")
-            
+            await inter.send(
+                f"Query was executed successfully with return: ```py\n{text}```"
+            )
+
+
 def setup(bot: Bot):
     bot.auto_setup(__name__)
