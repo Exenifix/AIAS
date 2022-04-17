@@ -405,7 +405,7 @@ class GuildData:
 
     async def get_rule(self, key: str) -> str:
         val = await self._db.execute(
-            "SELECT rule_key FROM rules WHERE id = $1 AND rule_key = $2",
+            "SELECT rule_text FROM rules WHERE id = $1 AND rule_key = $2",
             self.id,
             key,
             fetch_mode=FetchMode.VAL,
