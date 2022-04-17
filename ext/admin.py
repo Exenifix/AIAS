@@ -64,7 +64,7 @@ class Administration(commands.Cog):
     @admin_group.sub_command(
         name="removemanagermember", description="Removes a member from managers."
     )
-    async def admin_addmanagermember(
+    async def admin_removemanagermember(
         self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_automod_manager(member.id)
