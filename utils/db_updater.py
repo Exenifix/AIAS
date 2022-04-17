@@ -1,6 +1,6 @@
 from utils.enums import FetchMode
 
-version = 1
+version = 2
 
 
 async def update_db(db):
@@ -18,14 +18,25 @@ async def update_db(db):
         )
         for v in range(db_version + 1, version + 1):
             db.log.info("Executing compatibility script #%s", v)
+            sqls = []
             match v:
                 case 1:
-                    await db.execute(
-                        "ALTER TABLE guilds ALTER COLUMN antispam_enabled SET DEFAULT TRUE"
-                    )
-                    await db.execute(
-                        "ALTER TABLE guilds ALTER COLUMN blacklist_enabled SET DEFAULT TRUE"
-                    )
+                    sqls = [
+                        "ALTER TABLE guilds ALTER COLUMN antispam_enabled SET DEFAULT TRUE",
+                        "ALTER TABLE guilds ALTER COLUMN blacklist_enabled SET DEFAULT TRUE",
+                    ]
+                case 2:
+                    sqls = [
+                        "ALTER TABLE guilds ADD COLUMN warnings_threshold INT DEFAULT 3 CHECK(warnings_threshold > 0 AND warnings_threshold <= 10)",
+                        "ALTER TABLE guilds ADD COLUMN timeout_duration INT DEFAULT 15 CHECK(timeout_duration > 0 AND timeout_duration < 80000)",
+                        "ALTER TABLE guilds ADD COLUMN whitelist_enabled BOOLEAN DEFAULT FALSE",
+                        "ALTER TABLE guilds ADD COLUMN whitelist_characters TEXT DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,",
+                        "ALTER TABLE guilds ADD COLUMN nickfilter_enabled BOOLEAN DEFAULT TRUE",
+                        "ALTER TABLE guilds ADD COLUMN nickfilter_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]",
+                        "ALTER TABLE guilds ADD COLUMN log_channel BIGINT",
+                    ]
+            for sql in sqls:
+                await db.execute(sql)
 
         await db.execute("UPDATE version_data SET version = $1 WHERE id = 0", version)
         db.log.info("Database is at latest version now!")

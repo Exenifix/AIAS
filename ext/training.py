@@ -137,4 +137,4 @@ class Training(commands.Cog):
 
 
 def setup(bot: Bot):
-    bot.add_cog(Training(bot))
+    bot.auto_setup(__name__)

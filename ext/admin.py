@@ -1,6 +1,7 @@
 import disnake
 from disnake.ext import commands
 from utils.bot import Bot
+from utils.embeds import ErrorEmbed, SuccessEmbed
 
 
 class Administration(commands.Cog):
@@ -28,7 +29,9 @@ class Administration(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).add_automod_manager(role.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully added {role.mention} to the manager roles.**"
+            embed=SuccessEmbed(
+                inter, f"Successfully added {role.mention} to the manager roles."
+            )
         )
 
     @admin_group.sub_command(
@@ -40,7 +43,9 @@ class Administration(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).add_automod_manager(member.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully added {member.mention} to the managers.**"
+            embed=SuccessEmbed(
+                inter, f"Successfully added {member.mention} to the managers."
+            )
         )
 
     @admin_group.sub_command(
@@ -51,7 +56,9 @@ class Administration(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_automod_manager(role.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully removed {role.mention} from the manager roles.**"
+            embed=SuccessEmbed(
+                inter, f"Successfully removed {role.mention} from the manager roles."
+            )
         )
 
     @admin_group.sub_command(
@@ -62,9 +69,41 @@ class Administration(commands.Cog):
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_automod_manager(member.id)
         await inter.send(
-            f"{self.bot.sys_emojis.checkmark} | **Successfully removed {member.mention} from the managers.**"
+            embed=SuccessEmbed(
+                inter, f"Successfully removed {member.mention} from the managers."
+            )
+        )
+
+    @admin_group.sub_command(
+        name="setlogchannel", description="Sets a channel for logs."
+    )
+    async def setlogchannel(
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+    ):
+        if not channel.permissions_for(inter.me).send_messages:
+            await inter.send(
+                embed=ErrorEmbed(
+                    inter, "I am not able to send messages in that channel."
+                )
+            )
+            return
+
+        await self.bot.db.get_guild(inter.guild.id).set_log_channel_id(channel.id)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Successfully set the log channel to {channel.mention}."
+            )
+        )
+
+    @admin_group.sub_command(
+        name="disablelog", description="Disables the logging for this guild."
+    )
+    async def disablelog(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_log_channel_id(None)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully disabled logging in this server.")
         )
 
 
 def setup(bot: Bot):
-    bot.add_cog(Administration(bot))
+    bot.auto_setup(__name__)
