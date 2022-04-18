@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from exencolorlogs import Logger
 
 from utils import embeds
-from utils.constants import EMOJIS, LOG_CHANNEL_ID
+from utils.constants import EMOJIS, LOG_CHANNEL_ID, TRAIN_GUILD_IDS
 from utils.datamodels import Database
 from utils.views import AntispamView
 
@@ -19,16 +19,21 @@ REQUIRED_FOLDERS = ("logs",)
 
 
 class Bot(commands.Bot):
-    def __init__(self, version: str):
+    def __init__(self, version: str, *, test_version: bool = False):
         intents = disnake.Intents.all()
         intents.presences = False
+        self.log = Logger("BOT")
+        kwrg = {}
+        if test_version:
+            self.log.warning("Running on TEST VERSION")
+            kwrg = {"test_guilds": TRAIN_GUILD_IDS}
         super().__init__(
             intents=intents,
             allowed_mentions=disnake.AllowedMentions(
                 everyone=False, users=True, roles=False, replied_user=True
             ),
+            **kwrg,
         )
-        self.log = Logger("BOT")
         self.db: Database = Database()
         self.sys_emojis: embeds.Emojis = embeds.Emojis()
         self.version = version
