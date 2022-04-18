@@ -19,10 +19,16 @@ class Button(disnake.ui.Button, Generic[T]):
 
 
 class BaseView(disnake.ui.View, Generic[T]):
-    def __init__(self, user_id: int, buttons: list[Button[T]]):
+    def __init__(
+        self,
+        user_id: int,
+        buttons: list[Button[T]],
+        disable_after_interaction: bool = True,
+    ):
         self.value: T = None
         self.inter: disnake.MessageInteraction = None
         self.user_id = user_id
+        self.disable_after_interaction = disable_after_interaction
         super().__init__()
         for button in buttons:
             self.add_item(button)
@@ -41,10 +47,12 @@ class BaseView(disnake.ui.View, Generic[T]):
 
     async def get_result(self) -> tuple[T, disnake.MessageInteraction]:
         await self.wait()
-        for child in self.children:
-            child.disabled = True
+        if self.disable_after_interaction:
+            for child in self.children:
+                child.disabled = True
 
-        await self.inter.message.edit(view=self)
+            await self.inter.message.edit(view=self)
+
         return self.value, self.inter
 
 
@@ -62,6 +70,7 @@ class PhraseProcessingView(BaseView):
                     row=2,
                 ),
             ],
+            disable_after_interaction=False,
         )
 
 
