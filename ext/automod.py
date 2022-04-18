@@ -232,7 +232,7 @@ This member will be muted in **{warnings} warnings.**",
                     message,
                     title="Blacklisted Expression Blocked",
                     description=f"A message sent by {message.author.mention} was deleted for containing blacklisted expressions.\n\
-    This member will be muted in **{warnings} warnings.**",
+This member will be muted in **{warnings} warnings.**",
                 )
                 if expr is not None:
                     embed.add_field("Censoured Version", f"```{expr}```", inline=False)
@@ -314,9 +314,11 @@ class BlacklistManagement(commands.Cog):
         embed = BaseEmbed(
             inter,
             "Blacklisted Expressions",
-            "**COMMON** - searches for exact occurences of the blacklisted words in a message.\n\
-**WILD** - searches for the occurences of the blacklisted words everywhere in a message. This means that word may be spotted even if it is inside of another word. Example: blacklisted - `frick`; expression: `fricking`\n\
-**SUPER** - works just like the **WILD** but ignores spaces. This can also detect words *across several messages*. Example: blacklisted - `frick`; expression - `fr icki ng`",
+            "**COMMON** - searches for exact occurences of the blacklisted words in a message.\n\n\
+**WILD** - searches for the occurences of the blacklisted words everywhere in a message. \
+This means that word may be spotted even if it is inside of another word. Example: blacklisted - `frick`; expression: `fricking`\n\n\
+**SUPER** - works just like the **WILD** but ignores spaces. \
+This can also detect words *across several messages*. Example: blacklisted - `frick`; expression - `fr icki ng`",
         )
         embed.add_field("Common", "`" + "`, `".join(bl.common) + "`")
         embed.add_field("Wild", "`" + "`, `".join(bl.wild) + "`")
