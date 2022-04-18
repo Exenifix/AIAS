@@ -1,4 +1,4 @@
 {
-    "standard": "abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,",
-    "cyrillic": "абвгдеёжхийклмнопрстуфхцчшщъыьэюяabcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,"
+    "standard": "abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,1234567890",
+    "cyrillic": "абвгдеёжхийклмнопрстуфхцчшщъыьэюяabcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,1234567890"
 }

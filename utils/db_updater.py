@@ -1,6 +1,6 @@
 from utils.enums import FetchMode
 
-version = 3
+version = 4
 
 
 async def update_db(db):
@@ -38,6 +38,13 @@ async def update_db(db):
                 case 3:
                     sqls = [
                         "ALTER TABLE guilds ADD COLUMN whitelist_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]"
+                    ]
+                case 4:
+                    sqls = [
+                        "ALTER TABLE guilds ALTER COLUMN whitelist_characters SET DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890'",
+                        "UPDATE guilds \
+                            SET whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890' \
+                            WHERE whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
                     ]
             for sql in sqls:
                 async with db._pool.acquire() as con:

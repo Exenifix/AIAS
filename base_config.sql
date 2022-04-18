@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS guilds (
     blacklist_filter_enabled BOOLEAN DEFAULT TRUE,
 
     whitelist_enabled BOOLEAN DEFAULT FALSE,
-    whitelist_characters TEXT DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''"/\|<>.,',
+    whitelist_characters TEXT DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''"/\|<>.,1234567890',
     whitelist_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[],
 
     nickfilter_enabled BOOLEAN DEFAULT TRUE,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS version_data (
     id INT UNIQUE, version INT NOT NULL
 );
 
-INSERT INTO version_data (id, version) VALUES (0, 3) ON CONFLICT DO NOTHING;
+INSERT INTO version_data (id, version) VALUES (0, 4) ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules (
     id BIGINT NOT NULL,
