@@ -141,13 +141,13 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
             )
 
         elif fetch_mode == FetchMode.ROW:
-            text = "\t".join(map(str, r))
+            text = "\t".join(map(str, r.values()))
             await inter.send(
                 f"Query was executed successfully with return: ```py\n{text}```"
             )
 
         elif fetch_mode == FetchMode.ALL:
-            text = "\n".join(["\t".join(map(str, q)) for q in r])
+            text = "\n".join(["\t".join(map(str, q.values())) for q in r])
             if len(text) > 1000:
                 text = text[:1000]
             await inter.send(
