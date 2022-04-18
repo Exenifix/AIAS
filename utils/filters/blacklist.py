@@ -1,3 +1,4 @@
+import re
 from utils.enums import BlacklistMode
 
 BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,\n"
@@ -11,7 +12,17 @@ SYMBOL_MASK = {
     "{": "c",
     "3": "e",
     "@": "a",
+    "🅰️": "a",
+    "🅱️": "b",
+    "🆎": "ab",
 }
+
+REG_INDICATOR_PATTERN = r":regional_indicator_[a-z]:\s*:?"
+
+
+def _extract_regional_indicator(s: str) -> str:
+    s = s.replace("regional_indicator_", "")
+    return re.search(r"[a-z]", s).group()
 
 
 def _find_all_characters(s: str, char: str):
@@ -24,7 +35,12 @@ def _find_all_characters(s: str, char: str):
 
 
 def _format_expression(expr: str) -> str:
-    expr = expr.strip().lower()
+    expr = expr.strip().lower().replace("\n", "")
+    reg_indicators = set(re.findall(REG_INDICATOR_PATTERN, expr))
+    for ind in reg_indicators:
+        ind: str
+        expr = expr.replace(ind, _extract_regional_indicator(ind))
+
     new_expr = ""
     for s in expr:
         if s in SYMBOL_MASK:
