@@ -6,7 +6,7 @@ import disnake
 from disnake.ext import commands, tasks
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
-from utils.embeds import ErrorEmbed
+from utils.embeds import ErrorEmbed, SuccessEmbed
 from utils.enums import FetchMode
 from utils.errors import UNKNOWN, get_error_message
 
@@ -97,17 +97,20 @@ async def asyncf():
         with redirect_stdout(s):
 {indented_code}
         res = s.getvalue()
+        embed = SuccessEmbed(inter, "Code was evaluated successfully.")
         if len(res) > 0:
-            res = " with return:```py\\n" + res + "```"
-        await ctx.send("Code executed successfully" + res)
+            embed.add_field("Output", "```py\\n" + res + "```")
+        await inter.send(embed=embed)
     except Exception as e:
-        await ctx.send(embed=embeds.error('Code was not executed due to an exception:\\n```py' + str(e) + '```'))
+        await inter.send(embed=ErrorEmbed(inter, "Failed to execute code.").add_field("Exception", str(e)))
     
 asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
         env = {
             "asyncio": asyncio,
             "self": self,
             "inter": inter,
+            "SuccessEmbed": SuccessEmbed,
+            "ErrorEmbed": ErrorEmbed,
             "StringIO": StringIO,
             "redirect_stdout": redirect_stdout,
         }
