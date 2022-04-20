@@ -9,6 +9,7 @@ on:
 jobs:
   run:
     runs-on: self-hosted
+    environment: production
 
     steps:
       - name: Pull Repo Contents
