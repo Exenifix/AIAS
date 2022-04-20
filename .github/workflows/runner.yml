@@ -1,0 +1,33 @@
+name: Docker Runner
+
+on:
+  workflow_dispatch: # should be removed
+  # push:
+  #  branches: [ master ]
+  # this is commented out until the runner is set up
+
+jobs:
+  run:
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull Repo Contents
+        run: |
+          cd ~/AIAS
+          git pull
+        
+      - name: Build Docker Image
+        run: docker build -t aias .
+        
+      - name: Kill Previous Container
+        continue-on-error: true
+        run: docker rm -f aias
+        
+      - name: Run Container
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+          DATABASE: ${{ secrets.DATABASE }}
+          HOST: 127.0.0.1
+          USER: ${{ secrets.USER }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: docker run -d --name aias --net=host -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD aias:latest
