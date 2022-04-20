@@ -23,6 +23,11 @@ class Automod(commands.Cog):
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
 
     @commands.Cog.listener()
+    async def on_message_edit(self, before: disnake.Message, after: disnake.Message):
+        if before.content != after.content:
+            await self.on_message(after)
+
+    @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
         if message.author.bot:
             return
