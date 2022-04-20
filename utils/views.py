@@ -2,7 +2,7 @@ from typing import Generic, TypeVar
 
 import disnake
 
-from utils.embeds import BaseEmbed
+from utils.embeds import BaseEmbed, SuccessEmbed
 from utils.enums import ViewResponse
 
 T = TypeVar("T")
@@ -92,7 +92,7 @@ class AntispamView(disnake.ui.View):
     @disnake.ui.button(
         label="Not Spam", custom_id="not_spam", style=disnake.ButtonStyle.red
     )
-    async def not_spam(self, inter: disnake.MessageInteraction):
+    async def not_spam(self, _, inter: disnake.MessageInteraction):
         embed = inter.message.embeds[0]
         content = None
         for proxy in embed.fields:
@@ -108,3 +108,7 @@ class AntispamView(disnake.ui.View):
             ).add_field("Reported Content", content)
         )
         await inter.message.edit(view=None)
+        await inter.send(
+            embed=SuccessEmbed(inter, f"Your report was submitted successfully!"),
+            ephemeral=True,
+        )
