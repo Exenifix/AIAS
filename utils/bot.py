@@ -19,7 +19,7 @@ REQUIRED_FOLDERS = ("logs",)
 
 
 class Bot(commands.Bot):
-    def __init__(self, version: str, *, test_version: bool = False):
+    def __init__(self, *, test_version: bool = False):
         intents = disnake.Intents.all()
         intents.presences = False
         self.log = Logger("BOT")
@@ -36,7 +36,6 @@ class Bot(commands.Bot):
         )
         self.db: Database = Database()
         self.sys_emojis: embeds.Emojis = embeds.Emojis()
-        self.version = version
         self.log_channel: disnake.TextChannel = None
         self.warnings: WarningsManager = WarningsManager(self)
 
