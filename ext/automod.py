@@ -6,7 +6,7 @@ from disnake.ext import commands
 from utils.bot import Bot
 from utils.checks import is_automod_manager
 from utils.constants import MAX_BLACKLIST_QUEUE_SIZE, MAX_SPAM_QUEUE_SIZE
-from utils.embeds import BaseEmbed, SuccessEmbed, WarningEmbed
+from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed, WarningEmbed
 from utils.enums import BlacklistMode, ViewResponse
 from utils.filters.blacklist import is_blacklisted, preformat
 from utils.filters.whitelist import contains_fonts
@@ -357,6 +357,13 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
     ):
         mode = BlacklistMode(mode)
         expression = preformat(expression, mode)
+        if len(expression) == 0:
+            await inter.send(
+                embed=ErrorEmbed(
+                    inter, f"The formatted version of this expression will be empty."
+                )
+            )
+            return
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_word(expression, mode)
 
         await inter.send(
