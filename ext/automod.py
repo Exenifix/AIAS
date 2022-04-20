@@ -29,7 +29,7 @@ class Automod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
-        if message.author.bot:
+        if message.author.bot or len(message.content) == 0:
             return
         await self.bot.db.register_message(message.content)
         if message.author.guild_permissions.manage_guild:
