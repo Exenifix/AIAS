@@ -17,7 +17,7 @@ SYMBOL_MASK = {
     "🆎": "ab",
 }
 
-REG_INDICATOR_PATTERN = r":regional_indicator_[a-z]:\s*:?"
+REG_INDICATOR_PATTERN = r":regional_indicator_[a-z]:\s*"
 
 
 def _extract_regional_indicator(s: str) -> str:
