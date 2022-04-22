@@ -35,6 +35,9 @@ class GuildLogger:
         if self.log_channel is None:
             return
 
+        if blocked_content is not None and len(blocked_content) > 600:
+            blocked_content = blocked_content[:600] + "..."
+
         embed = BaseEmbed(
             target,
             f"{self.bot.sys_emojis.checkmark} Action Logging",
@@ -52,7 +55,11 @@ class GuildLogger:
                 embed.description = f"{len(deleted_messages)} messages were deleted from {channel.mention}."
                 text = ""
                 for msg in deleted_messages:
-                    content = msg.content[:20] if len(msg.content) > 20 else msg.content
+                    content = (
+                        (msg.content[:20] + "...")
+                        if len(msg.content) > 20
+                        else msg.content
+                    )
                     text += f"[**{msg.author}**]: {content}\n"
                 embed.add_field("Deleted Messages", text, inline=False)
 
