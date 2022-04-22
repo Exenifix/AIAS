@@ -85,7 +85,15 @@ class Bot(commands.Bot):
 
     async def on_error(self, event_method: str, *args, **kwargs):
         self.log.error("Unhandled exception occured at %s", event_method)
-        with open(f"logs/{datetime.now().date()}.log.err", "a") as f:
+        self.log_error()
+
+    def log_error(self):
+        now = datetime.now().date()
+        month_path = f"logs/{now.month}"
+        if not path_exists(month_path):
+            mkdir(month_path)
+
+        with open(f"{month_path}/{now.day}.log.err", "a") as f:
             f.write("\n" + "-" * 50)
             f.write(f"\n{datetime.now().date()}\n")
             traceback.print_exc(file=f)
