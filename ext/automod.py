@@ -37,6 +37,21 @@ class Automod(commands.Cog):
         if message.author.guild_permissions.manage_guild:
             return
 
+        await self._process_message(message)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before: disnake.Member, after: disnake.Member):
+
+        if before.nick == after.nick:
+            return
+
+        await self._process_nickfilter(after)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: disnake.Member):
+        await self._process_nickfilter(member)
+
+    async def _process_message(self, message: disnake.Message):
         try:
             if await self._process_whitelist(message):
                 return
@@ -62,18 +77,6 @@ class Automod(commands.Cog):
                 )
         except Exception as e:
             raise e
-
-    @commands.Cog.listener()
-    async def on_member_update(self, before: disnake.Member, after: disnake.Member):
-
-        if before.nick == after.nick:
-            return
-
-        await self._process_nickfilter(after)
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member: disnake.Member):
-        await self._process_nickfilter(member)
 
     async def _process_nickfilter(self, member: disnake.Member) -> bool:
         guild_data = self.bot.db.get_guild(member.guild.id)
@@ -110,6 +113,10 @@ class Automod(commands.Cog):
             return False
         else:
             queue = self.antispam_queue[message.guild.id][message.author.id]
+            for m in queue.copy():
+                if m.id == message.id:
+                    queue.remove(m)
+                    break
             queue.add(message)
             full_content = " ".join([m.content for m in queue])
             if is_spam(full_content):
@@ -149,6 +156,10 @@ This member will be muted in **{warnings} warnings.**",
             return False
         else:
             queue = self.blacklist_queue[message.guild.id][message.author.id]
+            for m in queue.copy():
+                if m.id == message.id:
+                    queue.remove(m)
+                    break
             queue.add(message)
             full_content = " ".join([m.content for m in queue])
             guild_data = self.bot.db.get_guild(message.guild.id)

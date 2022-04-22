@@ -38,8 +38,14 @@ class Queue(Generic[T]):
     def pop(self) -> T:
         return self._data.popleft()
 
+    def remove(self, value: T) -> None:
+        self._data.remove(value)
+
     def clear(self) -> None:
         self._data.clear()
+
+    def copy(self) -> "Queue[T]":
+        return self._data.copy()
 
 
 async def try_send(member: Member, content: Optional[str] = None, **kwargs):
