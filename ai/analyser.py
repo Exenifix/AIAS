@@ -5,7 +5,7 @@ analysis_data = namedtuple(
 )
 
 
-def analyse_sample(sample: str) -> tuple[int, int, int, int]:
+def analyse_sample(sample: str) -> analysis_data:
     """Returns results of the text analysis.
 
     `total_chars, unique_chars, total_words, unique_words = analyse_sample(sample)`"""
