@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 
 import disnake
@@ -20,6 +21,7 @@ class Automod(commands.Cog):
         self.bot = bot
         self.antispam_queue: dict[int, dict[int, Queue[disnake.Message]]] = {}
         self.blacklist_queue: dict[int, dict[int, Queue[disnake.Message]]] = {}
+        self.permission_warnings: dict[int, datetime] = {}
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
 
     @commands.Cog.listener()
@@ -35,14 +37,31 @@ class Automod(commands.Cog):
         if message.author.guild_permissions.manage_guild:
             return
 
-        if await self._process_whitelist(message):
-            return
+        try:
+            if await self._process_whitelist(message):
+                return
 
-        elif await self._process_antispam(message):
-            return
+            elif await self._process_antispam(message):
+                return
 
-        elif await self._process_blacklist(message):
-            return
+            elif await self._process_blacklist(message):
+                return
+        except disnake.Forbidden:
+            if (
+                message.guild.id not in self.permission_warnings
+                or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
+                >= 120
+            ):
+                self.permission_warnings[message.guild.id] = datetime.now()
+                await message.channel.send(
+                    embed=WarningEmbed(
+                        message,
+                        title="Missing Permissions",
+                        description="The bot is missing `MANAGE MESSAGES` permission and cannot apply filters. Please grant the required permission to the bot.",
+                    )
+                )
+        except Exception as e:
+            raise e
 
     @commands.Cog.listener()
     async def on_member_update(self, before: disnake.Member, after: disnake.Member):
