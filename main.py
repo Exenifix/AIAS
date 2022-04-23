@@ -1,3 +1,3 @@
 from utils.bot import Bot
 
-Bot().run()
+Bot(test_version=False).run()

@@ -62,3 +62,8 @@ def split_text(text: str, symbols_per_string: Optional[int] = 100) -> list[str]:
         new_texts.append(text[i : i + symbols_per_string])
 
     return new_texts
+
+
+def sorted_dict(d: dict) -> dict:
+    keys = sorted(d.keys())
+    return {k: d[k] for k in keys}

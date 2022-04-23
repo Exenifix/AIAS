@@ -3,7 +3,7 @@ from disnake.ext import commands
 from utils.bot import Bot
 from utils.checks import is_automod_manager
 from utils.embeds import BaseEmbed, SuccessEmbed
-from utils.utils import split_text
+from utils.utils import sorted_dict, split_text
 
 
 class RulesManagement(commands.Cog):
@@ -46,11 +46,12 @@ class Rules(commands.Cog):
     async def listruleskeys(self, inter: disnake.ApplicationCommandInteraction):
         rules = await self.bot.db.get_guild(inter.guild.id).get_all_rules()
         if rules is None:
-            await inter.send(f"There are no rules.")
+            await inter.send(f"There are no rules.", ephemeral=True)
             return
 
+        rules = sorted(rules.keys())
         await inter.send(
-            embed=BaseEmbed(inter, "Rules", "`" + "`, `".join(rules.keys()) + "`")
+            embed=BaseEmbed(inter, "Rules", "`" + "`, `".join(rules) + "`")
         )
 
     @commands.slash_command(
@@ -59,6 +60,10 @@ class Rules(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def listrules(self, inter: disnake.ApplicationCommandInteraction):
         rules = await self.bot.db.get_guild(inter.guild.id).get_all_rules()
+        if rules is None:
+            await inter.send(f"There are no rules.", ephemeral=True)
+
+        rules = sorted_dict(rules)
         text = ""
         for k, v in rules.items():
             text += f"{k}: {v}\n"
