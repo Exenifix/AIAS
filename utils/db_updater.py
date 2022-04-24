@@ -1,6 +1,7 @@
+from ai.analyser import analyse_sample
 from utils.enums import FetchMode
 
-version = 4
+version = 5
 
 
 async def update_db(db):
@@ -46,6 +47,27 @@ async def update_db(db):
                             SET whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890' \
                             WHERE whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
                     ]
+                case 5:
+                    db.log.info("Executing data correction algorithm (DB version 5)...")
+                    records = await db.execute(
+                        "SELECT id, content FROM data WHERE content LIKE '%<%>%'",
+                        fetch_mode=FetchMode.ALL,
+                    )
+                    db.log.info("Got %s invalid records", len(records))
+                    for r in records:
+                        tc, uc, tw, uw = analyse_sample(r["content"])
+                        await db.execute(
+                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4 WHERE id = $5",
+                            tc,
+                            uc,
+                            tw,
+                            uw,
+                            r["id"],
+                        )
+
+                    db.log.warning(
+                        "Data correction successful, please retrain the model!"
+                    )
             for sql in sqls:
                 async with db._pool.acquire() as con:
                     async with con.transaction():
