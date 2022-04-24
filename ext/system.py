@@ -125,7 +125,9 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
             )
 
     @commands.slash_command(
-        name="execsql", description="Executes SQL query. **Owner only**"
+        name="execsql",
+        description="Executes SQL query. **Owner only**",
+        guild_ids=TRAIN_GUILD_IDS,
     )
     async def execsql(
         self,
