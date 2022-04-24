@@ -1,4 +1,5 @@
 import re
+
 from utils.enums import BlacklistMode
 
 BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,\n"
@@ -17,7 +18,7 @@ SYMBOL_MASK = {
     "🆎": "ab",
 }
 
-REG_INDICATOR_PATTERN = r":regional_indicator_[a-z]:\s*"
+REG_INDICATOR_PATTERN = re.compile(r":regional_indicator_[a-z]:\s*")
 
 
 def _extract_regional_indicator(s: str) -> str:
