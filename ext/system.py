@@ -34,7 +34,7 @@ class SystemListeners(commands.Cog):
 
         await inter.send(
             embed=ErrorEmbed(
-                inter, description=f"Sorry, an error occured:**\n```py\n{msg}```"
+                inter, description=f"Sorry, an error occured:\n```py\n{msg}```"
             )
         )
 
