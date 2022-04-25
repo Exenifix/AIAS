@@ -61,7 +61,7 @@ class Automod(commands.Cog):
 
             elif await self._process_blacklist(message):
                 return
-        except disnake.Forbidden:
+        except disnake.HTTPException:
             if (
                 message.guild.id not in self.permission_warnings
                 or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
