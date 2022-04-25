@@ -9,7 +9,7 @@ from ai.analyser import analyse_sample, extract_mentions
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
-from utils import errors
+from utils import autocomplete, errors
 from utils.constants import SPAM_VERIFICATION_THRESHOLD
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
@@ -395,6 +395,7 @@ class GuildData:
                 key,
                 value,
             )
+            autocomplete.invalidate_rules(self.id)
         except asyncpg.UniqueViolationError:
             raise errors.RuleAlreadyExists(key)
 
@@ -402,6 +403,7 @@ class GuildData:
         await self._db.execute(
             "DELETE FROM rules WHERE id = $1 AND rule_key = $2", self.id, key
         )
+        autocomplete.invalidate_rules(self.id)
 
     async def get_rule(self, key: str) -> str:
         val = await self._db.execute(

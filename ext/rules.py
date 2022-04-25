@@ -1,5 +1,6 @@
 import disnake
 from disnake.ext import commands
+from utils.autocomplete import autocomplete_rules
 from utils.bot import Bot
 from utils.checks import is_automod_manager
 from utils.embeds import BaseEmbed, SuccessEmbed
@@ -81,7 +82,11 @@ class Rules(commands.Cog):
         name="rule", description="Fetches contents of a single rule."
     )
     @commands.cooldown(1, 10, commands.BucketType.member)
-    async def select_rule(self, inter: disnake.ApplicationCommandInteraction, key: str):
+    async def select_rule(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        key: str = commands.Param(autocomplete=autocomplete_rules),
+    ):
         rule = await self.bot.db.get_guild(inter.guild.id).get_rule(key)
         await inter.send(embed=BaseEmbed(inter, f"Rule {key}", rule))
 
