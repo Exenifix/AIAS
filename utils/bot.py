@@ -85,9 +85,9 @@ class Bot(commands.Bot):
 
     async def on_error(self, event_method: str, *args, **kwargs):
         self.log.error("Unhandled exception occured at %s", event_method)
-        self.log_error()
+        await self.log_error()
 
-    def log_error(self):
+    async def log_error(self):
         now = datetime.now().date()
         month_path = f"logs/{now.month}"
         if not path_exists(month_path):
@@ -95,8 +95,17 @@ class Bot(commands.Bot):
 
         with open(f"{month_path}/{now.day}.log.err", "a") as f:
             f.write("\n" + "-" * 50)
-            f.write(f"\n{datetime.now().date()}\n")
-            traceback.print_exc(file=f)
+            f.write(f"\n{datetime.now()}\n")
+            tb = traceback.format_exc()
+            f.write(tb)
+            await self.log_channel.send(
+                self.owner.mention,
+                embed=embeds.ErrorEmbed(
+                    self.owner, f"Got an unexpected exception"
+                ).add_field(
+                    "Traceback (most recent call last):", tb[:-1000], inline=False
+                ),
+            )
 
     def auto_setup(self, module_name: str):
         module = sys.modules[module_name]

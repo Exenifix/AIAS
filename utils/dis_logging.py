@@ -1,6 +1,7 @@
 from typing import Sequence
 
 import disnake
+from exencolorlogs import Logger
 
 from utils.embeds import BaseEmbed
 from utils.enums import ActionType
@@ -10,10 +11,12 @@ from utils.views import AntispamView
 class GuildLogger:
     guild: disnake.Guild
     log_channel: disnake.TextChannel
+    log: Logger
 
     async def load(self, bot, guild_id: int):
         self.bot = bot
         self.guild: disnake.Guild = bot.get_guild(guild_id)
+        self.log = Logger(f"GUILDLOG {guild_id}")
         log_id = await bot.db.get_guild(guild_id).get_log_channel_id()
         if log_id is None:
             self.log_channel = None
@@ -83,7 +86,12 @@ class GuildLogger:
                 embed.add_field("Old Nickname", old_nickname, inline=False)
                 embed.add_field("New Nickname", new_nickname, inline=False)
 
-        await self.log_channel.send(embed=embed)
+        try:
+            await self.log_channel.send(embed=embed)
+        except disnake.Forbidden:
+            self.log.warning(
+                "Failed to complete logging action in guild %s", self.guild
+            )
 
     async def log_single_deletion(
         self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str

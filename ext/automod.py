@@ -35,6 +35,7 @@ class Automod(commands.Cog):
             message.author.bot
             or len(message.content) == 0
             or message.author.guild_permissions.manage_guild
+            or not message.channel.permissions_for(message.guild.me).send_messages
         ):
             return
 
@@ -62,7 +63,7 @@ class Automod(commands.Cog):
 
             elif await self._process_blacklist(message):
                 return
-        except disnake.HTTPException:
+        except disnake.Forbidden:
             if (
                 message.guild.id not in self.permission_warnings
                 or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
@@ -79,7 +80,7 @@ class Automod(commands.Cog):
         except Exception as e:
             raise e
 
-    async def _process_nickfilter(self, member: disnake.Member) -> bool:
+    async def _process_nickfilter(self, member: disnake.Member):
         guild_data = self.bot.db.get_guild(member.guild.id)
         enabled, ignored = await guild_data.get_nickfilter_data()
         if not enabled or any(r.id in ignored for r in member.roles):
@@ -89,7 +90,15 @@ class Automod(commands.Cog):
         old_nick = member.display_name
         if is_blacklisted(bl, old_nick)[0]:
             nick = generate_random_nick()
-            await member.edit(nick=nick)
+            try:
+                await member.edit(nick=nick)
+            except disnake.Forbidden:
+                self.bot.log.warning(
+                    "Failed to change nickname of user %s in guild %s",
+                    member,
+                    member.guild,
+                )
+                return
             await try_send(
                 member,
                 f"Your current name on **{member.guild.name}** does not pass its blacklist filter, so you were given randomly generated **{nick}** nickname.",
