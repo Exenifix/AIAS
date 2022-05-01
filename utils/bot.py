@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from exencolorlogs import Logger
 
 from utils import embeds
+from ai.train import train as train_ai
 from utils.constants import EMOJIS, LOG_CHANNEL_ID, TRAIN_GUILD_IDS
 from utils.datamodels import Database
 from utils.views import AntispamView
@@ -43,6 +44,9 @@ class Bot(commands.Bot):
         self.log.info("Establishing database connection...")
         await self.db.connect()
         await self.db.setup()
+
+        self.log.info("Training AI model...")
+        await train_ai(self.db)
 
         self.log.info("Loading extensions...")
         self.load_extensions("./ext")

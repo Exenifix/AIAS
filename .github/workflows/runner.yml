@@ -18,14 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Train Model
-        run: |
-          python3 -m virtualenv train-venv
-          . train-venv/bin/activate
-          pip install -U -r train-requirements.txt
-          python3 ai/train.py
-          deactivate
-
       - name: Build Docker Image
         run: docker build -t aias .
         
