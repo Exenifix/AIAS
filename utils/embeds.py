@@ -32,7 +32,7 @@ class BaseEmbed(disnake.Embed):
         super().__init__(
             color=COLOR, title=title, description=description, timestamp=datetime.now()
         )
-        if isinstance(ctx, disnake.Member):
+        if isinstance(ctx, (disnake.Member, disnake.User)):
             self.set_footer(text=ctx, icon_url=ctx.display_avatar.url)
         else:
             self.set_footer(

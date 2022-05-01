@@ -6,7 +6,7 @@ import disnake
 from disnake.ext import commands, tasks
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
-from utils.embeds import ErrorEmbed, SuccessEmbed
+from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
 from utils.enums import FetchMode
 from utils.errors import UNKNOWN, get_error_message
 
@@ -40,11 +40,25 @@ class SystemListeners(commands.Cog):
         self.bot.log.info(
             "Joined guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds)
         )
+        await self.bot.log_channel.send(
+            embed=BaseEmbed(
+                self.bot.owner,
+                "Joined Guild",
+                f"**Name:** `{guild.name}\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
+            )
+        )
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):
         self.bot.log.info(
             "Left guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds)
+        )
+        await self.bot.log_channel.send(
+            embed=BaseEmbed(
+                self.bot.owner,
+                "Left Guild",
+                f"**Name:** `{guild.name}\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
+            )
         )
 
 
