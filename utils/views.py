@@ -2,8 +2,9 @@ from typing import Generic, TypeVar
 
 import disnake
 
+from ai.analyser import analyse_sample, extract_mentions
 from utils.embeds import BaseEmbed, SuccessEmbed
-from utils.enums import ViewResponse
+from utils.enums import FetchMode, ViewResponse
 
 T = TypeVar("T")
 
@@ -112,3 +113,49 @@ class AntispamView(disnake.ui.View):
             embed=SuccessEmbed(inter, f"Your report was submitted successfully!"),
             ephemeral=True,
         )
+
+
+class ReportedNotSpamView(disnake.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @disnake.ui.button(
+        label="Overwrite",
+        custom_id="antispam_overwrite",
+        style=disnake.ButtonStyle.green,
+    )
+    async def antispam_overwrite(self, _, inter: disnake.MessageInteraction):
+        embed = inter.message.embeds[0]
+        content = None
+        for proxy in embed.fields:
+            if proxy.name == "Reported Content":
+                content = proxy.value
+                break
+
+        content = extract_mentions(content[3:-3].lower())
+        id = await inter.bot.db.execute(
+            "SELECT id FROM data WHERE content = $1", content, fetch_mode=FetchMode.VAL
+        )
+        if id is None:
+            data = analyse_sample(content)
+            await inter.bot.db.execute(
+                "INSERT INTO data (content, total_chars, unique_chars, total_words, unique_words) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
+                content,
+                *data,
+            )
+        else:
+            await inter.bot.db.execute(
+                "UPDATE data SET is_spam = FALSE WHERE id = $1", id
+            )
+
+        await inter.message.edit(view=None)
+        await inter.send(
+            f"Successfully updated sample `#{id}`. Retraining required.", ephemeral=True
+        )
+
+    @disnake.ui.button(
+        label="Ignore", custom_id="antispam_ignore", style=disnake.ButtonStyle.red
+    )
+    async def antispam_ignore(self, _, inter: disnake.MessageInteraction):
+        await inter.message.edit(view=None)
+        await inter.send(f"Sample ignored.", ephemeral=True)
