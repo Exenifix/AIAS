@@ -1,6 +1,5 @@
 .env
 venv
-train-venv
 __pycache__
 models
 local
