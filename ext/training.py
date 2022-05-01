@@ -48,7 +48,11 @@ class Training(commands.Cog):
                 await inter.send(
                     embed=disnake.Embed(
                         title="Is this message a spam?", description=f"{rec}"
-                    ).add_field("AI Prediction", "YES" if is_spam(rec) else "NO"),
+                    )
+                    .add_field(
+                        "AI Prediction", "YES" if is_spam(rec) else "NO", inline=False
+                    )
+                    .add_field("ID", str(id), inline=False),
                     view=view,
                     ephemeral=True,
                 )
