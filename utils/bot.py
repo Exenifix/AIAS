@@ -98,20 +98,21 @@ class Bot(commands.Bot):
         if not path_exists(month_path):
             mkdir(month_path)
 
-        with open(f"{month_path}/{now.day}.log.err", "a") as f:
+        path = f"{month_path}/{now.day}.log.err"
+        with open(path, "a") as f:
             f.write("\n" + "-" * 50)
             f.write(f"\n{datetime.now()}\n")
             tb = traceback.format_exc()
             f.write(tb)
-            await self.log_channel.send(
-                self.owner.mention,
-                embed=disnake.Embed(
-                    colour=0xFF0000,
-                    title=f"{self.sys_emojis.exclamation} Unexpected error occured",
-                ).add_field(
-                    "Traceback (most recent call last):", tb[:-1000], inline=False
-                ),
-            )
+
+        await self.log_channel.send(
+            self.owner.mention,
+            embed=disnake.Embed(
+                colour=0xFF0000,
+                title=f"{self.sys_emojis.exclamation} Unexpected error occured",
+            ).add_field("Traceback (most recent call last):", tb[-1000:], inline=False),
+            file=disnake.File(path),
+        )
 
     def auto_setup(self, module_name: str):
         module = sys.modules[module_name]
