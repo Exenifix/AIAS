@@ -1,6 +1,9 @@
 # AIAS
 AIAS (Artificial Intelligence AntiSpam) is an open-source Discord bot that has innovative moderation features, such as nextgen word filter and AI-based spam detection.
 
+## Links
+- **[Support Server](https://discord.gg/TsSAfdN4hS)**
+- **[Invite Bot](https://top.gg/bot/962093056910323743)**
 ## AI Spam Detection
 The bot is able to detect spam messages and even sequences of messages that are spam at pretty high accuracy. <!-- if well trained -->
 ### Quick Setup
