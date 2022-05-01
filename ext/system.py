@@ -27,9 +27,6 @@ class SystemListeners(commands.Cog):
                     inter, description=f"Unknown error occured\n```py\n{error}```"
                 )
             )
-            await self.bot.log_channel.send(
-                f"{self.bot.owner.mention}, an unexpected error occured. Please check logs for details."
-            )
             raise error
 
         await inter.send(

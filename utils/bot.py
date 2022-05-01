@@ -100,8 +100,9 @@ class Bot(commands.Bot):
             f.write(tb)
             await self.log_channel.send(
                 self.owner.mention,
-                embed=embeds.ErrorEmbed(
-                    self.owner, f"Got an unexpected exception"
+                embed=disnake.Embed(
+                    colour=0xFF0000,
+                    title=f"{self.sys_emojis.exclamation} Unexpected error occured",
                 ).add_field(
                     "Traceback (most recent call last):", tb[:-1000], inline=False
                 ),
