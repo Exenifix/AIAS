@@ -5,8 +5,8 @@ RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY . /app
+WORKDIR /app
 RUN pip install -r requirements.txt
 
 ENTRYPOINT ["python"]
-RUN ["ai/train.py"]
 CMD ["main.py"]

@@ -1,22 +1,30 @@
 name: Docker Runner
 
 on:
-  workflow_dispatch: # should be removed
-  # push:
-  #  branches: [ master ]
-  # this is commented out until the runner is set up
+  push:
+    branches: [ master ]
 
 jobs:
   run:
     runs-on: self-hosted
     environment: production
+    env:
+      TOKEN: ${{ secrets.TOKEN }}
+      DATABASE: ${{ secrets.DATABASE }}
+      HOST: 127.0.0.1
+      USER: ${{ secrets.USER }}
+      PASSWORD: ${{ secrets.PASSWORD }}
 
     steps:
-      - name: Pull Repo Contents
+      - uses: actions/checkout@v3
+      - name: Train Model
         run: |
-          cd ~/AIAS
-          git pull
-        
+          python3 -m virtualenv train-venv
+          . train-venv/bin/activate
+          pip install -U -r train-requirements.txt
+          python3 ai/train.py
+          deactivate
+
       - name: Build Docker Image
         run: docker build -t aias .
         
@@ -25,10 +33,4 @@ jobs:
         run: docker rm -f aias
         
       - name: Run Container
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
-          DATABASE: ${{ secrets.DATABASE }}
-          HOST: 127.0.0.1
-          USER: ${{ secrets.USER }}
-          PASSWORD: ${{ secrets.PASSWORD }}
-        run: docker run -d --name aias --net=host -v $(pwd):/app -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD aias:latest
+        run: docker run -d --name aias --net=host -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD aias:latest
