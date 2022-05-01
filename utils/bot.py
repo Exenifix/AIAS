@@ -86,7 +86,7 @@ class Bot(commands.Bot):
         self.load_emojis()
         embeds.init(self.sys_emojis)
 
-        self.log_channel = self.get_channel(LOG_CHANNEL_ID)
+        self.log_channel = await self.fetch_channel(LOG_CHANNEL_ID)
 
     async def on_error(self, event_method: str, *args, **kwargs):
         self.log.error("Unhandled exception occured at %s", event_method)
