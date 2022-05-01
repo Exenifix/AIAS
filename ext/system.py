@@ -44,7 +44,7 @@ class SystemListeners(commands.Cog):
             embed=BaseEmbed(
                 self.bot.owner,
                 "Joined Guild",
-                f"**Name:** `{guild.name}\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
+                f"**Name:** `{guild.name}`\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
             )
         )
 
@@ -57,7 +57,7 @@ class SystemListeners(commands.Cog):
             embed=BaseEmbed(
                 self.bot.owner,
                 "Left Guild",
-                f"**Name:** `{guild.name}\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
+                f"**Name:** `{guild.name}`\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
             )
         )
 
