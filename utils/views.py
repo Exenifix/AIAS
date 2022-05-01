@@ -106,7 +106,8 @@ class AntispamView(disnake.ui.View):
                 inter,
                 "Not Spam Report",
                 f"Reported non spam message from {inter.guild.id}",
-            ).add_field("Reported Content", content)
+            ).add_field("Reported Content", content),
+            view=ReportedNotSpamView(),
         )
         await inter.message.edit(view=None)
         await inter.send(
