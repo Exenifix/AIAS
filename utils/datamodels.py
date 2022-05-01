@@ -119,7 +119,7 @@ class Database:
 
     async def get_unmarked_message(self):
         record = await self.execute(
-            "SELECT id, content FROM data WHERE is_spam IS NULL LIMIT 1",
+            "SELECT MIN(id) AS id, content FROM data WHERE is_spam IS NULL LIMIT 1",
             fetch_mode=FetchMode.ROW,
         )
         if record is None:
