@@ -1,9 +1,12 @@
 import asyncio
 from contextlib import redirect_stdout
 from io import StringIO
+import os
+import aiohttp
 
 import disnake
 from disnake.ext import commands, tasks
+from dotenv import load_dotenv
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
@@ -65,14 +68,33 @@ class SystemListeners(commands.Cog):
 class SystemLoops(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
+        load_dotenv()
+        self.tgg_token = os.getenv("TOPGG_TOKEN")
 
         self.presence_updater.start()
 
     @tasks.loop(minutes=30)
     async def presence_updater(self):
+        guilds_count = len(self.bot.guilds)
         await self.bot.change_presence(
-            activity=disnake.Game(f"Watching {len(self.bot.guilds)} guilds...")
+            activity=disnake.Activity(
+                type=disnake.ActivityType.watching, name=f"{guilds_count} guilds..."
+            )
         )
+        async with aiohttp.ClientSession(
+            headers={"Authorization": self.tgg_token}
+        ) as session:
+            r = await session.post(
+                f"https://top.gg/api/bots/962093056910323743/stats",
+                json={"server_count": guilds_count},
+            )
+            if r.status != 200:
+                resp: dict = await r.json()
+                self.bot.log.warning(
+                    "Failed to update top.gg stats. Error code: %s\nError: %s",
+                    r.status,
+                    resp.get("error", resp),
+                )
 
     @presence_updater.before_loop
     async def loop_waiter(self):

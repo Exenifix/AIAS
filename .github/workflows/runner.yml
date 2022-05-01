@@ -15,6 +15,7 @@ jobs:
       HOST: 127.0.0.1
       USER: ${{ secrets.USER }}
       PASSWORD: ${{ secrets.PASSWORD }}
+      TOPGG_TOKEN: ${{ secrets.TOPGG_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
@@ -26,4 +27,4 @@ jobs:
         run: docker rm -f aias
         
       - name: Run Container
-        run: docker run -d --name aias --net=host -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD aias:latest
+        run: docker run -d --name aias --net=host -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD -e TOPGG_TOKEN=$TOPGG_TOKEN aias:latest
