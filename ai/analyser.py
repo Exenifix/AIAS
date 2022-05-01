@@ -4,7 +4,7 @@ from collections import namedtuple
 CHANNEL_REGEX = re.compile(r"<#\d{18}>")
 ROLE_REGEX = re.compile(r"<@&\d{18}>")
 MENTION_REGEX = re.compile(r"<@!?\d{18}>")
-EMOJI_REGEX = re.compile(r"<a?:\w*:\d{18}>")
+EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]*:\d{18}>")
 
 analysis_data = namedtuple(
     "analysis_data", ["total_chars", "unique_chars", "total_words", "unique_words"]
