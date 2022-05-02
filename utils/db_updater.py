@@ -57,11 +57,12 @@ async def update_db(db):
                     for r in records:
                         tc, uc, tw, uw = analyse_sample(r["content"])
                         await db.execute(
-                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4 WHERE id = $5",
+                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4, content = $5 WHERE id = $6",
                             tc,
                             uc,
                             tw,
                             uw,
+                            r["content"],
                             r["id"],
                         )
 
