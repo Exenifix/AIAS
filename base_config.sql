@@ -32,6 +32,11 @@ CREATE TABLE IF NOT EXISTS guilds (
     nickfilter_enabled BOOLEAN DEFAULT TRUE,
     nickfilter_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[],
 
+    antiraid_enabled BOOLEAN DEFAULT FALSE,
+    antiraid_join_interval INT DEFAULT 30,
+    antiraid_members_limit INT DEFAULT 5,
+    antiraid_punishment INT DEFAULT 1,
+
     log_channel BIGINT,
 
     automod_managers BIGINT[] DEFAULT ARRAY[]::BIGINT[]
@@ -41,7 +46,7 @@ CREATE TABLE IF NOT EXISTS version_data (
     id INT UNIQUE, version INT NOT NULL
 );
 
-INSERT INTO version_data (id, version) VALUES (0, 5) ON CONFLICT DO NOTHING;
+INSERT INTO version_data (id, version) VALUES (0, 6) ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules (
     id BIGINT NOT NULL,

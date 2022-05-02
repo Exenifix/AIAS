@@ -13,7 +13,7 @@ from utils import autocomplete, errors
 from utils.constants import SPAM_VERIFICATION_THRESHOLD
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
-from utils.enums import BlacklistMode, FetchMode
+from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode
 from utils.filters.blacklist import preformat
 
 load_dotenv()
@@ -171,6 +171,20 @@ class WhitelistData(SubData):
     ignored: list[int]
 
     __slots__ = ["enabled", "characters", "ignored"]
+
+
+class AntiraidData(SubData):
+    _guild: "GuildData"
+    enabled: bool
+    join_interval: int
+    members_limit: int
+    punishment: AntiraidPunishment
+
+    __slots__ = ["enabled", "join_interval", "members_limit", "punishment"]
+
+    async def load(self):
+        await super().load()
+        self.punishment = AntiraidPunishment(self.punishment)
 
 
 class GuildData:
@@ -448,3 +462,20 @@ class GuildData:
 
     async def set_warnings_threshold(self, value: int):
         await self._update(warnings_threshold=value)
+
+    async def get_antiraid_data(self) -> AntiraidData:
+        data = AntiraidData(self)
+        await data.load()
+        return data
+
+    async def set_antiraid_enabled(self, value: bool):
+        await self._update(antiraid_enabled=value)
+
+    async def set_antiraid_join_interval(self, value: int):
+        await self._update(antiraid_join_interval=value)
+
+    async def set_antiraid_members_limit(self, value: int):
+        await self._update(antiraid_members_limit=value)
+
+    async def set_antiraid_punishment(self, value: int):
+        await self._update(antiraid_punishment=value)

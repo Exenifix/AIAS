@@ -1,7 +1,8 @@
 from ai.analyser import analyse_sample
+
 from utils.enums import FetchMode
 
-version = 5
+version = 6
 
 
 async def update_db(db):
@@ -70,6 +71,13 @@ async def update_db(db):
                     db.log.warning(
                         "Data correction successful, please retrain the model!"
                     )
+                case 6:
+                    sqls = [
+                        "ALTER TABLE guilds ADD COLUMN antiraid_enabled BOOLEAN DEFAULT FALSE",
+                        "ALTER TABLE guilds ADD COLUMN antiraid_join_interval INT DEFAULT 30",
+                        "ALTER TABLE guilds ADD COLUMN antiraid_members_limit INT DEFAULT 5",
+                        "ALTER TABLE guilds ADD COLUMN antiraid_punishment INT DEFAULT 1",
+                    ]
             for sql in sqls:
                 async with db._pool.acquire() as con:
                     async with con.transaction():
