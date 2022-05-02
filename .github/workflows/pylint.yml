@@ -21,4 +21,4 @@ jobs:
         pip install -r requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py') --exit-zero --exit-zero --disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-self-use,too-few-public-methods,bare-except
+        pylint $(git ls-files '*.py') --exit-zero --disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-self-use,too-few-public-methods,bare-except
