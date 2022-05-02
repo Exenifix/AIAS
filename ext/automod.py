@@ -33,6 +33,7 @@ class Automod(commands.Cog):
     async def on_message(self, message: disnake.Message):
         if (
             message.author.bot
+            or message.channel.type == disnake.ChannelType.private
             or len(message.content) == 0
             or message.author.guild_permissions.manage_guild
             or not message.channel.permissions_for(message.guild.me).send_messages
@@ -43,7 +44,6 @@ class Automod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before: disnake.Member, after: disnake.Member):
-
         if before.nick == after.nick:
             return
 
