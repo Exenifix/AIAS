@@ -6,15 +6,15 @@ from os import getenv, mkdir
 from os.path import exists as path_exists
 
 import disnake
+from ai.train import train as train_ai
 from disnake.ext import commands, tasks
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
 from utils import embeds
-from ai.train import train as train_ai
 from utils.constants import EMOJIS, LOG_CHANNEL_ID, TRAIN_GUILD_IDS
 from utils.datamodels import Database
-from utils.views import AntispamView, ReportedNotSpamView
+from utils.views import AntispamView, ReportedNotSpamView, UnbanView, UntimeoutView
 
 REQUIRED_FOLDERS = ("logs",)
 
@@ -60,6 +60,8 @@ class Bot(commands.Bot):
 
         self.add_view(AntispamView())
         self.add_view(ReportedNotSpamView())
+        self.add_view(UnbanView())
+        self.add_view(UntimeoutView())
         self.log.info("Starting the bot...")
         await super().start(*args, **kwargs)
 

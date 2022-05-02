@@ -27,3 +27,11 @@ class ActionType(Enum):
     QUEUE_DELETION = 2
     TIMEOUT = 3
     NICK_CHANGE = 4
+    ANTIRAID_BAN = 5
+    ANTIRAID_KICK = 6
+
+
+class AntiraidPunishment(Enum):
+    BAN = 0
+    KICK = 1
+    TIMEOUT = 2

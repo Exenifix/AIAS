@@ -5,7 +5,7 @@ from exencolorlogs import Logger
 
 from utils.embeds import BaseEmbed
 from utils.enums import ActionType
-from utils.views import AntispamView
+from utils.views import AntispamView, UnbanView, UntimeoutView
 
 
 class GuildLogger:
@@ -32,6 +32,7 @@ class GuildLogger:
         blocked_content: str = None,
         deleted_messages: Sequence[disnake.Message] = None,
         timeout_duration: int = None,
+        is_antiraid: bool = False,
         old_nickname: str = None,
         new_nickname: str = None,
     ):
@@ -77,14 +78,28 @@ class GuildLogger:
 
             case ActionType.TIMEOUT:
                 embed.title = f"{self.bot.sys_emojis.checkmark} Member Timeout"
-                embed.description = f"A member was timed out."
+                embed.description = f"A member was timed out{' due to suspect of raid' if is_antiraid else ''}."
                 embed.add_field("Duration", f"{timeout_duration} minutes", inline=False)
+                view = UntimeoutView()
+                await self.log_channel.send(embed=embed, view=view)
+                return
 
             case ActionType.NICK_CHANGE:
                 embed.title = f"{self.bot.sys_emojis.checkmark} Nick Blocked"
                 embed.description = "A nickname was considered inappropriate."
                 embed.add_field("Old Nickname", old_nickname, inline=False)
                 embed.add_field("New Nickname", new_nickname, inline=False)
+
+            case ActionType.ANTIRAID_BAN:
+                embed.title = f"{self.bot.sys_emojis.exclamation} Member Banned"
+                embed.description = "Member was suspected to be a raider."
+                view = UnbanView()
+                await self.log_channel.send(embed=embed, view=view)
+                return
+
+            case ActionType.ANTIRAID_KICK:
+                embed.title = f"{self.bot.sys_emojis.warning} Member Kicked"
+                embed.description = "Member was suspected to be a raider."
 
         try:
             await self.log_channel.send(embed=embed)
@@ -116,9 +131,14 @@ class GuildLogger:
             deleted_messages=deleted_messages,
         )
 
-    async def log_timeout(self, target: disnake.Member, timeout_duration: int):
+    async def log_timeout(
+        self, target: disnake.Member, timeout_duration: int, is_antiraid: bool = False
+    ):
         await self._log_action(
-            ActionType.TIMEOUT, target, timeout_duration=timeout_duration
+            ActionType.TIMEOUT,
+            target,
+            timeout_duration=timeout_duration,
+            is_antiraid=is_antiraid,
         )
 
     async def log_nick_change(
@@ -140,3 +160,9 @@ class GuildLogger:
             channel=channel,
             blocked_content=blocked_content,
         )
+
+    async def log_antiraid_ban(self, target: disnake.Member):
+        await self._log_action(ActionType.ANTIRAID_BAN, target)
+
+    async def log_antiraid_kick(self, target: disnake.Member):
+        await self._log_action(ActionType.ANTIRAID_KICK, target)

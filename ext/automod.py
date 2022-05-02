@@ -6,6 +6,7 @@ from utils.bot import Bot
 from utils.embeds import WarningEmbed
 from utils.filters.blacklist import is_blacklisted
 from utils.nicknames import generate_random_nick
+from utils.processors.antiraid import AntiraidProcessor
 from utils.processors.messages import (
     AntiSpamProcessor,
     BlacklistProcessor,
@@ -20,6 +21,7 @@ class Automod(commands.Cog):
         self.antispam_processor = AntiSpamProcessor(bot)
         self.blacklist_processor = BlacklistProcessor(bot)
         self.whitelist_processor = WhitelistProcessor(bot)
+        self.antiraid_processor = AntiraidProcessor(bot)
         self.permission_warnings: dict[int, datetime] = {}
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
 
@@ -49,6 +51,7 @@ class Automod(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: disnake.Member):
         await self._process_nickfilter(member)
+        await self.antiraid_processor.process(member)
 
     async def _process_message(self, message: disnake.Message):
         try:

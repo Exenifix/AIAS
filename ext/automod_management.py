@@ -5,7 +5,7 @@ from disnake.ext import commands
 from utils.bot import Bot
 from utils.checks import is_automod_manager
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed, WarningEmbed
-from utils.enums import BlacklistMode, ViewResponse
+from utils.enums import AntiraidPunishment, BlacklistMode, ViewResponse
 from utils.filters.blacklist import preformat
 from utils.views import BaseView, Button, ConfirmationView
 
@@ -649,6 +649,70 @@ class AutotimeoutManagement(commands.Cog):
             embed=SuccessEmbed(
                 inter, f"Successfully set timeout duration to `{duration} m`"
             )
+        )
+
+
+class AntiraidManagement(commands.Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    async def cog_slash_command_check(
+        self, inter: disnake.ApplicationCommandInteraction
+    ) -> bool:
+        return await is_automod_manager(self.bot, inter)
+
+    @commands.slash_command(name="antiraid")
+    async def antiraid(self, _):
+        pass
+
+    @antiraid.sub_command(
+        name="enable", description="Enables antiraid for this server."
+    )
+    async def enable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_antiraid_enabled(True)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully enabled antiraid for this server!")
+        )
+
+    @antiraid.sub_command(
+        name="disable", description="Disables antiraid for this server."
+    )
+    async def disable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_antiraid_enabled(False)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully disabled antiraid for this server!")
+        )
+
+    @antiraid.sub_command(
+        name="setup", description="Set how many members can join per certain interval."
+    )
+    async def setup(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        members: int = commands.Param(ge=3, le=15),
+        interval: int = commands.Param(description="In seconds", ge=5, le=120),
+    ):
+        guild_data = self.bot.db.get_guild(inter.guild.id)
+        await guild_data.set_antiraid_members_limit(members)
+        await guild_data.set_antiraid_join_interval(interval)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter,
+                f"Successfully set antiraid limit to `{members}` members per `{interval}` seconds!",
+            )
+        )
+
+    @antiraid.sub_command(
+        name="setpunishment", description="Set punishment for raiders."
+    )
+    async def setpunishment(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        punishment: AntiraidPunishment,
+    ):
+        await self.bot.db.get_guild(inter.guild.id).set_antiraid_punishment(punishment)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully updated antiraid punishment!")
         )
 
 
