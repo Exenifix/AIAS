@@ -19,6 +19,14 @@ AIAS also has an innovative word filter that can find blacklisted words in the m
 3. Add/remove words with `/blacklist add` and `/blacklist remove`
 4. Set the ignored channels and roles with `/blacklist ignore` command group
 
+## Antiraid
+Antiraid makes sure huge amount of members doesn't join just at once. **This feature is in BETA!**
+
+### Quick Setup
+1. Enable the system with `/antiraid enable`
+2. Setup rate per using `/antiraid setup`
+3. Pick the punishment with `/antiraid setpunishment`
+
 ### Blacklist Modes
 - `common` blacklist mode searches for *exact matches* in words of the message.
 - `wild` blacklist mode searches for *any occurences __inside__* of the words (including the exact match).

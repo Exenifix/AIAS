@@ -666,7 +666,7 @@ class AntiraidManagement(commands.Cog):
         pass
 
     @antiraid.sub_command(
-        name="enable", description="Enables antiraid for this server."
+        name="enable", description="Enables antiraid for this server. BETA FEATURE!"
     )
     async def enable(self, inter: disnake.ApplicationCommandInteraction):
         await self.bot.db.get_guild(inter.guild.id).set_antiraid_enabled(True)
