@@ -68,6 +68,8 @@ class SystemListeners(commands.Cog):
 class SystemLoops(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
+        self.last_amount_submitted: int = None
+
         load_dotenv()
         self.tgg_token = os.getenv("TOPGG_TOKEN")
 
@@ -82,24 +84,26 @@ class SystemLoops(commands.Cog):
                 type=disnake.ActivityType.watching, name=f"{guilds_count} guilds..."
             )
         )
-        async with aiohttp.ClientSession(
-            headers={"Authorization": self.tgg_token}
-        ) as session:
-            r = await session.post(
-                f"https://top.gg/api/bots/962093056910323743/stats",
-                json={"server_count": guilds_count},
-            )
-            if r.status != 200:
-                resp: dict = await r.json()
-                self.bot.log.warning(
-                    "Failed to update top.gg stats. Error code: %s\nError: %s",
-                    r.status,
-                    resp.get("error", resp),
+        if self.last_amount_submitted != guilds_count:
+            async with aiohttp.ClientSession(
+                headers={"Authorization": self.tgg_token}
+            ) as session:
+                r = await session.post(
+                    f"https://top.gg/api/bots/962093056910323743/stats",
+                    json={"server_count": guilds_count},
                 )
-            else:
-                self.bot.log.ok(
-                    "Successfully updated top.gg stats with %s", guilds_count
-                )
+                if r.status != 200:
+                    resp: dict = await r.json()
+                    self.bot.log.warning(
+                        "Failed to update top.gg stats. Error code: %s\nError: %s",
+                        r.status,
+                        resp.get("error", resp),
+                    )
+                else:
+                    self.bot.log.ok(
+                        "Successfully updated top.gg stats with %s", guilds_count
+                    )
+                    self.last_amount_submitted = guilds_count
 
     @presence_updater.before_loop
     async def loop_waiter(self):
