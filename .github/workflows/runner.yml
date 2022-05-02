@@ -30,4 +30,5 @@ jobs:
         run: docker run -d --name aias --net=host -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD -e TOPGG_TOKEN=$TOPGG_TOKEN aias:latest
 
       - name: Display Bot Logs
+        timeout-minutes: 5
         run: python3 read_logs.py
