@@ -71,7 +71,8 @@ class SystemLoops(commands.Cog):
         load_dotenv()
         self.tgg_token = os.getenv("TOPGG_TOKEN")
 
-        self.presence_updater.start()
+        if not self.bot.test_version:
+            self.presence_updater.start()
 
     @tasks.loop(minutes=30)
     async def presence_updater(self):
@@ -94,6 +95,10 @@ class SystemLoops(commands.Cog):
                     "Failed to update top.gg stats. Error code: %s\nError: %s",
                     r.status,
                     resp.get("error", resp),
+                )
+            else:
+                self.bot.log.ok(
+                    "Successfully updated top.gg stats with %s", guilds_count
                 )
 
     @presence_updater.before_loop

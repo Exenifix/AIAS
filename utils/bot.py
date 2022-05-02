@@ -25,6 +25,7 @@ class Bot(commands.Bot):
         intents.presences = False
         self.log = Logger("BOT")
         kwrg = {}
+        self.test_version = test_version
         if test_version:
             self.log.warning("Running on TEST VERSION")
             kwrg = {"test_guilds": TRAIN_GUILD_IDS}
@@ -46,7 +47,8 @@ class Bot(commands.Bot):
         await self.db.setup()
 
         self.log.info("Training AI model...")
-        await train_ai(self.db)
+        if not self.test_version:
+            await train_ai(self.db)
 
         self.log.info("Loading extensions...")
         self.load_extensions("./ext")
