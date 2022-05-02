@@ -77,6 +77,8 @@ class Automod(commands.Cog):
                         description="The bot is missing `MANAGE MESSAGES` permission and cannot apply filters. Please grant the required permission to the bot.",
                     )
                 )
+        except disnake.NotFound:
+            pass
         except Exception as e:
             raise e
 
