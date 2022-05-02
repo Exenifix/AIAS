@@ -34,4 +34,4 @@ async def train(db: Database):
 
     with open("./ai/models/model.ai", "wb") as f:
         dump(model, f)
-        log.info("File saved successfully to ./ai/models/model.ai")
+        log.ok("File saved successfully to ./ai/models/model.ai")

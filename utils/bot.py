@@ -82,7 +82,7 @@ class Bot(commands.Bot):
             setattr(self.sys_emojis, name, self.get_emoji(id))
 
     async def on_ready(self):
-        self.log.info("Bot is ready!")
+        self.log.ok("Bot is ready!")
         self.load_emojis()
         embeds.init(self.sys_emojis)
 
@@ -121,6 +121,8 @@ class Bot(commands.Bot):
         )
         for member in members:
             self.add_cog(member[1](self))
+
+        self.log.ok("%s loaded", module_name)
 
 
 class WarningsManager:

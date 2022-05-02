@@ -5,15 +5,16 @@ version = 5
 
 
 async def update_db(db):
+    db.log.info("Checking database version incompatibilities...")
     db_version: int = await db.execute(
         "SELECT version FROM version_data WHERE id = 0", fetch_mode=FetchMode.VAL
     )
     if db_version == version:
-        db.log.info("Database is at latest version, no actions required.")
+        db.log.ok("Database is at latest version, no actions required.")
         return
     elif db_version < version:
         db.log.warning(
-            "Incomatibilities detected. Database version: %s || Required version: %s. Executing compatibility scripts...",
+            "Incompatibilities detected. Database version: %s || Required version: %s. Executing compatibility scripts...",
             db_version,
             version,
         )
@@ -75,4 +76,4 @@ async def update_db(db):
                         await con.execute(sql)
 
         await db.execute("UPDATE version_data SET version = $1 WHERE id = 0", version)
-        db.log.info("Database is at latest version now!")
+        db.log.ok("Database is at latest version now!")

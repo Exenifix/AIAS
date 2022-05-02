@@ -50,12 +50,12 @@ class Database:
     async def connect(self):
         self.log.info("Creating connection pool...")
         self._pool = await asyncpg.create_pool(**self._connection_config)
-        self.log.info("Connection pool created successfully!")
+        self.log.ok("Connection pool created successfully!")
 
     async def close(self):
         self.log.info("Closing connection pool...")
         await self._pool.close()
-        self.log.info("Connection pool closed successfully")
+        self.log.ok("Connection pool closed successfully")
 
     async def execute(self, query: str, *args, fetch_mode: FetchMode = FetchMode.NONE):
         async with self._pool.acquire() as con:
