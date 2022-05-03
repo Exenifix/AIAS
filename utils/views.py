@@ -153,8 +153,7 @@ class ReportedNotSpamView(disnake.ui.View):
         if id is None:
             data = analyse_sample(content)
             await inter.bot.db.execute(
-                "INSERT INTO data (content, total_chars, unique_chars, total_words, unique_words) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
-                content,
+                "INSERT INTO data (total_chars, unique_chars, total_words, unique_words, content) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
                 *data,
             )
         else:

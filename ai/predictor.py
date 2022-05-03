@@ -10,4 +10,4 @@ with open("ai/models/model.ai", "rb") as f:
 
 
 def is_spam(sample: str) -> bool:
-    return bool(model.predict(array(analyse_sample(sample), ndmin=2))[0])
+    return bool(model.predict(array(analyse_sample(sample)[:4], ndmin=2))[0])

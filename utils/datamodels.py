@@ -86,11 +86,9 @@ class Database:
         return GuildData(self, id)
 
     async def register_message(self, content: str):
-        content = extract_mentions(content.lower())
         data = analyse_sample(content)
         await self.execute(
-            "INSERT INTO data (content, total_chars, unique_chars, total_words, unique_words) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
-            content,
+            "INSERT INTO data (total_chars, unique_chars, total_words, unique_words, content) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
             *data,
         )
 

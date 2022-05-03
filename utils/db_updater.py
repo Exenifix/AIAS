@@ -2,7 +2,7 @@ from ai.analyser import analyse_sample
 
 from utils.enums import FetchMode
 
-version = 6
+version = 7
 
 
 async def update_db(db):
@@ -50,27 +50,7 @@ async def update_db(db):
                             WHERE whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
                     ]
                 case 5:
-                    db.log.info("Executing data correction algorithm (DB version 5)...")
-                    records = await db.execute(
-                        "SELECT id, content FROM data WHERE content LIKE '%<%>%'",
-                        fetch_mode=FetchMode.ALL,
-                    )
-                    db.log.info("Got %s invalid records", len(records))
-                    for r in records:
-                        tc, uc, tw, uw = analyse_sample(r["content"])
-                        await db.execute(
-                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4, content = $5 WHERE id = $6",
-                            tc,
-                            uc,
-                            tw,
-                            uw,
-                            r["content"],
-                            r["id"],
-                        )
-
-                    db.log.warning(
-                        "Data correction successful, please retrain the model!"
-                    )
+                    db.log.info("Compatibility script #5 was moved to #7")
                 case 6:
                     sqls = [
                         "ALTER TABLE guilds ADD COLUMN antiraid_enabled BOOLEAN DEFAULT FALSE",
@@ -78,6 +58,28 @@ async def update_db(db):
                         "ALTER TABLE guilds ADD COLUMN antiraid_members_limit INT DEFAULT 5",
                         "ALTER TABLE guilds ADD COLUMN antiraid_punishment INT DEFAULT 1",
                     ]
+                case 7:
+                    db.log.info("Executing data correction algorithm (DB version 7)...")
+                    records = await db.execute(
+                        "SELECT id, content FROM data WHERE content LIKE '%<%>%'",
+                        fetch_mode=FetchMode.ALL,
+                    )
+                    db.log.info("Got %s invalid records", len(records))
+                    for r in records:
+                        tc, uc, tw, uw, content = analyse_sample(r["content"])
+                        await db.execute(
+                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4, content = $5 WHERE id = $6",
+                            tc,
+                            uc,
+                            tw,
+                            uw,
+                            content,
+                            r["id"],
+                        )
+
+                    db.log.warning(
+                        "Data correction successful, please retrain the model!"
+                    )
             for sql in sqls:
                 async with db._pool.acquire() as con:
                     async with con.transaction():
