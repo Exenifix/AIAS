@@ -68,7 +68,7 @@ async def update_db(db):
                     for r in records:
                         tc, uc, tw, uw, content = analyse_sample(r["content"])
                         await db.execute(
-                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4, content = $5 WHERE id = $6 ON CONFLICT DO NOTHING",
+                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4, content = $5 WHERE id = $6 AND NOT EXISTS(SELECT 1 FROM data WHERE content = $5)",
                             tc,
                             uc,
                             tw,
