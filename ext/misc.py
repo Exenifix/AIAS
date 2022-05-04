@@ -32,7 +32,7 @@ class Miscellaneous(commands.Cog):
                 f"**CPU LOAD:** `{psutil.cpu_percent()}%`\n\
 **MEMORY LOAD:** `{psutil.virtual_memory().percent}%`\n\
 **PLATFORM:** `{platform.platform()}`\n\
-**CPU:** `{platform.processor()}`\n\
+**CPU:** `{platform.processor() or 'NO DATA'}`\n\
 **PYTHON VERSION:** `{platform.python_version()}`",
                 inline=False,
             )

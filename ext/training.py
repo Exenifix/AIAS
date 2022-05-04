@@ -3,7 +3,7 @@ from ai.predictor import is_spam
 from disnake.ext import commands
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
-from utils.enums import FetchMode, ViewResponse
+from utils.enums import ViewResponse
 from utils.views import PhraseProcessingView
 
 
