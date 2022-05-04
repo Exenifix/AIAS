@@ -27,7 +27,7 @@ jobs:
         run: docker rm -f aias
         
       - name: Run Container
-        run: docker run -d --name aias --net=host -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD -e TOPGG_TOKEN=$TOPGG_TOKEN aias:latest
+        run: docker run -d --name aias --net=host -v /home/exenifix/aias/logs:/app/logs -v /home/exenifix/aias/models:/app/ai/models -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD -e TOPGG_TOKEN=$TOPGG_TOKEN aias:latest
 
       - name: Display Bot Logs
         timeout-minutes: 5
