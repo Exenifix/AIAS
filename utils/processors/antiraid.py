@@ -35,15 +35,15 @@ class AntiraidProcessor:
             queue.add(member)
             return queue
 
-    async def process(self, member: disnake.Member):
+    async def process(self, member: disnake.Member) -> int:
         guild_data = self.bot.db.get_guild(member.guild.id)
         antiraid = await guild_data.get_antiraid_data()
         if not antiraid.enabled:
-            return
+            return 0
 
         queue = self.add(member, antiraid.members_limit)
         if queue == False:
-            return
+            return 0
 
         if (
             len(queue) == antiraid.members_limit
@@ -99,4 +99,6 @@ class AntiraidProcessor:
                         str(e),
                     )
 
+            amount = len(queue)
             queue.clear()
+            return amount

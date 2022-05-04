@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import redirect_stdout
+from datetime import datetime
 from io import StringIO
 import os
 import aiohttp
@@ -78,6 +79,10 @@ class SystemLoops(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def presence_updater(self):
+        # reset stats here not to create another useless loop
+        if (await self.bot.db.get_daily_reset()).day != datetime.now().day:
+            await self.bot.db.reset_daily_stats()
+
         guilds_count = len(self.bot.guilds)
         await self.bot.change_presence(
             activity=disnake.Activity(

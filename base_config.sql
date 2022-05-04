@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS guilds (
     antiraid_enabled BOOLEAN DEFAULT FALSE,
     antiraid_join_interval INT DEFAULT 30,
     antiraid_members_limit INT DEFAULT 5,
-    antiraid_punishment INT DEFAULT 1,
+    antiraid_punishment INT DEFAULT 1, -- decodification in utils.enums.AntiraidPunishment
 
     log_channel BIGINT,
 
@@ -46,11 +46,22 @@ CREATE TABLE IF NOT EXISTS version_data (
     id INT UNIQUE, version INT NOT NULL
 );
 
-INSERT INTO version_data (id, version) VALUES (0, 7) ON CONFLICT DO NOTHING;
+INSERT INTO version_data (id, version) VALUES (0, 8) ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules (
     id BIGINT NOT NULL,
     rule_key TEXT,
     rule_text TEXT,
     UNIQUE(id, rule_key)
+);
+
+CREATE TABLE IF NOT EXISTS stats (
+    id INT UNIQUE NOT NULL, -- decodification in utils.enums.Stat
+    applied_totally INT DEFAULT 0,
+    applied_daily INT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS resets (
+    id INT UNIQUE NOT NULL, -- 0 is daily
+    value TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

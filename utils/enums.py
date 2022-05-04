@@ -35,3 +35,11 @@ class AntiraidPunishment(Enum):
     BAN = 0
     KICK = 1
     TIMEOUT = 2
+
+
+class Stat(Enum):
+    SPAM_BLOCKED = 0
+    BAD_WORDS_BLOCKED = 1
+    BAD_CHARACTERS_BLOCKED = 2
+    RAIDERS_PUNISHED = 3
+    NICKNAMES_FILTERED = 4

@@ -13,20 +13,6 @@ class Training(commands.Cog):
         self.active_sessions: list[int] = []
 
     @commands.slash_command(
-        name="count",
-        description="Shows how many records the antispam model has been trained on.",
-    )
-    async def count(self, inter: disnake.ApplicationCommandInteraction):
-        count_total = await self.bot.db.execute(
-            "SELECT COUNT(1) FROM data", fetch_mode=FetchMode.VAL
-        )
-        count_validated = await self.bot.db.execute(
-            "SELECT COUNT(1) FROM data WHERE is_spam IS NOT NULL",
-            fetch_mode=FetchMode.VAL,
-        )
-        await inter.send(f"**Total: {count_total}**\n**Validated: {count_validated}**")
-
-    @commands.slash_command(
         name="validate",
         description="Special command for owner to validate all the spam samples",
         guild_ids=TRAIN_GUILD_IDS,

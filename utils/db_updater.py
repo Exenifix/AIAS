@@ -2,7 +2,7 @@ from ai.analyser import analyse_sample
 
 from utils.enums import FetchMode
 
-version = 7
+version = 8
 
 
 async def update_db(db):
@@ -80,6 +80,11 @@ async def update_db(db):
                     db.log.warning(
                         "Data correction successful, please retrain the model!"
                     )
+                case 8:
+                    sqls = [
+                        "INSERT INTO stats (id) VALUES (0), (1), (2), (3), (4)",
+                        "INSERT INTO resets (id) VALUES (0)",
+                    ]
             for sql in sqls:
                 async with db._pool.acquire() as con:
                     async with con.transaction():

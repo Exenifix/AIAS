@@ -4,6 +4,7 @@ import disnake
 from disnake.ext import commands
 from utils.bot import Bot
 from utils.embeds import WarningEmbed
+from utils.enums import Stat
 from utils.filters.blacklist import is_blacklisted
 from utils.nicknames import generate_random_nick
 from utils.processors.antiraid import AntiraidProcessor
@@ -51,17 +52,26 @@ class Automod(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: disnake.Member):
         await self._process_nickfilter(member)
-        await self.antiraid_processor.process(member)
+        amount = await self.antiraid_processor.process(member)
+        if amount > 0:
+            await self.bot.db.register_stat_increase(Stat.RAIDERS_PUNISHED)
 
     async def _process_message(self, message: disnake.Message):
         try:
             if await self.whitelist_processor.process(message):
+                await self.bot.db.register_stat_increase(
+                    Stat.WHITELIST_MESSAGES_DELETED
+                )
                 return
 
             elif await self.antispam_processor.process(message):
+                await self.bot.db.register_stat_increase(Stat.ANTISPAM_MESSAGES_DELETED)
                 return
 
             elif await self.blacklist_processor.process(message):
+                await self.bot.db.register_stat_increase(
+                    Stat.BLACKLIST_MESSAGES_DELETED
+                )
                 return
         except disnake.Forbidden:
             if (
@@ -107,6 +117,7 @@ class Automod(commands.Cog):
             )
             log = await guild_data.get_logger(self.bot)
             await log.log_nick_change(member, old_nick, nick)
+            await self.bot.db.register_stat_increase(Stat.NICKNAMES_FILTERED)
 
 
 def setup(bot: Bot):

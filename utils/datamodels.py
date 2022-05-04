@@ -1,3 +1,4 @@
+from datetime import datetime
 import sys
 from collections import namedtuple
 from os import getenv
@@ -13,7 +14,7 @@ from utils import autocomplete, errors
 from utils.constants import SPAM_VERIFICATION_THRESHOLD
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
-from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode
+from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
 from utils.filters.blacklist import preformat
 
 load_dotenv()
@@ -123,6 +124,33 @@ class Database:
         if record is None:
             return None, None
         return tuple(record.values())
+
+    async def register_stat_increase(self, stat: Stat, amount: int = 1):
+        await self.execute(
+            "UPDATE stats SET applied_totally = applied_totally + $2, applied_daily = applied_daily + $2 WHERE id = $1",
+            stat.value,
+            amount,
+        )
+
+    async def get_stats(self) -> str:
+        data = await self.execute("SELECT * FROM stats", fetch_mode=FetchMode.ALL)
+        text = ""
+        for record in data:
+            text += f"\n**{Stat(record['id']).name.replace('_', ' ').title()}:** `{record['applied_totally']}` total, `{record['applied_daily']}` daily"
+
+        return text
+
+    async def reset_daily_stats(self):
+        await self.execute("UPDATE stats SET applied_daily = 0")
+        await self.update_daily_reset()
+
+    async def get_daily_reset(self) -> datetime:
+        return await self.execute(
+            "SELECT value FROM resets WHERE id = 0", fetch_mode=FetchMode.VAL
+        )
+
+    async def update_daily_reset(self):
+        await self.execute("UPDATE resets SET value = CURRENT_TIMESTAMP WHERE id = 0")
 
 
 class SubData:
