@@ -102,3 +102,5 @@ class AntiraidProcessor:
             amount = len(queue)
             queue.clear()
             return amount
+
+        return 0
