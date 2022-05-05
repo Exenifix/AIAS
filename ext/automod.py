@@ -59,19 +59,15 @@ class Automod(commands.Cog):
     async def _process_message(self, message: disnake.Message):
         try:
             if await self.whitelist_processor.process(message):
-                await self.bot.db.register_stat_increase(
-                    Stat.WHITELIST_MESSAGES_DELETED
-                )
+                await self.bot.db.register_stat_increase(Stat.BAD_CHARACTERS_BLOCKED)
                 return
 
             elif await self.antispam_processor.process(message):
-                await self.bot.db.register_stat_increase(Stat.ANTISPAM_MESSAGES_DELETED)
+                await self.bot.db.register_stat_increase(Stat.SPAM_BLOCKED)
                 return
 
             elif await self.blacklist_processor.process(message):
-                await self.bot.db.register_stat_increase(
-                    Stat.BLACKLIST_MESSAGES_DELETED
-                )
+                await self.bot.db.register_stat_increase(Stat.BAD_WORDS_BLOCKED)
                 return
         except disnake.Forbidden:
             if (
