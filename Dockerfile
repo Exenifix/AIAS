@@ -1,7 +1,8 @@
 FROM python:3.10-bullseye
 
 ENV VIRTUAL_ENV=/app/venv
-RUN python -m venv $VIRTUAL_ENV
+RUN pip3 install -U pip virtualenv
+RUN python -m virtualenv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
