@@ -13,21 +13,15 @@ analysis_data = namedtuple(
 
 
 def extract_mentions(content: str) -> str:
-    channels: set[str] = set(re.findall(CHANNEL_REGEX, content))
-    for i, channel in enumerate(channels):
-        content = content.replace(channel, f"c{i}")
-
-    roles: set[str] = set(re.findall(ROLE_REGEX, content))
-    for i, role in enumerate(roles):
-        content = content.replace(role, f"r{i}")
-
-    mentions: set[str] = set(re.findall(MENTION_REGEX, content))
-    for i, mention in enumerate(mentions):
-        content = content.replace(mention, f"m{i}")
-
-    emojis: set[str] = set(re.findall(EMOJI_REGEX, content))
-    for i, emoji in enumerate(emojis):
-        content = content.replace(emoji, f"e{i}")
+    for name, regex in (
+        ("c", CHANNEL_REGEX),
+        ("r", ROLE_REGEX),
+        ("m", MENTION_REGEX),
+        ("e", EMOJI_REGEX),
+    ):
+        entries: set[str] = regex.findall(regex, content)
+        for i, entry in enumerate(entries):
+            content = content.replace(entry, f"{name}{i}")
 
     return content
 
