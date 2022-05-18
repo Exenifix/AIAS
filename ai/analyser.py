@@ -19,7 +19,7 @@ def extract_mentions(content: str) -> str:
         ("m", MENTION_REGEX),
         ("e", EMOJI_REGEX),
     ):
-        entries: set[str] = regex.findall(regex, content)
+        entries: set[str] = re.findall(regex, content)
         for i, entry in enumerate(entries):
             content = content.replace(entry, f"{name}{i}")
 
