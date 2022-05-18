@@ -46,8 +46,8 @@ class Bot(commands.Bot):
         await self.db.connect()
         await self.db.setup()
 
-        self.log.info("Training AI model...")
         if not self.test_version:
+            self.log.info("Training AI model...")
             await train_ai(self.db)
 
         self.log.info("Loading extensions...")
