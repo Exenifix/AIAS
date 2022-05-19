@@ -14,11 +14,13 @@ assignees: ''
 (leave empty if no error message)
 
 **Who would you like to fix the bug?**
+
 - [ ] myself
 - [ ] community
 - [ ] repository administration
 
 **What category does this bug relate to?**
+
 - [ ] antispam
 - [ ] blacklist
 - [ ] other

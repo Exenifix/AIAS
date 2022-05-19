@@ -21,11 +21,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build Docker Image
         run: docker build -t aias .
-        
+
       - name: Kill Previous Container
         continue-on-error: true
         run: docker rm -f aias
-        
+
       - name: Run Container
         run: docker run -d --name aias --net=host -v /home/exenifix/aias/logs:/app/logs -v /home/exenifix/aias/models:/app/ai/models -e TOKEN=$TOKEN -e DATABASE=$DATABASE -e HOST=$HOST -e USER=$USER -e PASSWORD=$PASSWORD -e TOPGG_TOKEN=$TOPGG_TOKEN aias:latest
 

@@ -4,7 +4,7 @@ from collections import namedtuple
 CHANNEL_REGEX = re.compile(r"<#\d{18}>")
 ROLE_REGEX = re.compile(r"<@&\d{18}>")
 MENTION_REGEX = re.compile(r"<@!?\d{18}>")
-EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]*:\d{18}>")
+EMOJI_REGEX = re.compile(r"<a?:\w*:\d{18}>")
 
 analysis_data = namedtuple(
     "analysis_data",
@@ -14,12 +14,12 @@ analysis_data = namedtuple(
 
 def extract_mentions(content: str) -> str:
     for name, regex in (
-        ("c", CHANNEL_REGEX),
-        ("r", ROLE_REGEX),
-        ("m", MENTION_REGEX),
-        ("e", EMOJI_REGEX),
+            ("c", CHANNEL_REGEX),
+            ("r", ROLE_REGEX),
+            ("m", MENTION_REGEX),
+            ("e", EMOJI_REGEX),
     ):
-        entries: set[str] = re.findall(regex, content)
+        entries: set[str] = set(re.findall(regex, content))
         for i, entry in enumerate(entries):
             content = content.replace(entry, f"{name}{i}")
 

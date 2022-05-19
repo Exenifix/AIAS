@@ -1,11 +1,12 @@
 import os
-import disnake
-from disnake.ext import commands
-from utils.bot import Bot
-from utils.embeds import BaseEmbed
-import psutil
 import platform
 
+import disnake
+import psutil
+from disnake.ext import commands
+
+from utils.bot import Bot
+from utils.embeds import BaseEmbed
 from utils.enums import FetchMode
 
 
@@ -16,7 +17,6 @@ class Miscellaneous(commands.Cog):
     @commands.slash_command(name="stats", description="Show stats about the bot.")
     @commands.cooldown(1, 30, commands.BucketType.channel)
     async def stats(self, inter: disnake.ApplicationCommandInteraction):
-
         total_records = await self.bot.db.execute(
             "SELECT COUNT(1) FROM data", fetch_mode=FetchMode.VAL
         )
@@ -25,7 +25,7 @@ class Miscellaneous(commands.Cog):
             fetch_mode=FetchMode.VAL,
         )
         embed = (
-            BaseEmbed(inter, "Bot Stats", None)
+            BaseEmbed(inter, "Bot Stats", "The stats of the AIAS!")
             .add_field("Bot Stats", await self.bot.db.get_stats(), inline=False)
             .add_field(
                 "Server Stats",

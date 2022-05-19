@@ -24,17 +24,17 @@ class GuildLogger:
             self.log_channel = await self.guild.fetch_channel(log_id)
 
     async def _log_action(
-        self,
-        action: ActionType,
-        target: disnake.Member,
-        *,
-        channel: disnake.TextChannel = None,
-        blocked_content: str = None,
-        deleted_messages: Sequence[disnake.Message] = None,
-        timeout_duration: int = None,
-        is_antiraid: bool = False,
-        old_nickname: str = None,
-        new_nickname: str = None,
+            self,
+            action: ActionType,
+            target: disnake.Member,
+            *,
+            channel: disnake.TextChannel = None,
+            blocked_content: str = None,
+            deleted_messages: Sequence[disnake.Message] = None,
+            timeout_duration: int = None,
+            is_antiraid: bool = False,
+            old_nickname: str = None,
+            new_nickname: str = None,
     ):
         if self.log_channel is None:
             return
@@ -109,7 +109,7 @@ class GuildLogger:
             )
 
     async def log_single_deletion(
-        self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str
+            self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str
     ):
         await self._log_action(
             ActionType.SINGLE_DELETION,
@@ -119,10 +119,10 @@ class GuildLogger:
         )
 
     async def log_queue_deletion(
-        self,
-        target: disnake.Member,
-        channel: disnake.TextChannel,
-        deleted_messages: Sequence[disnake.Message],
+            self,
+            target: disnake.Member,
+            channel: disnake.TextChannel,
+            deleted_messages: Sequence[disnake.Message],
     ):
         await self._log_action(
             ActionType.QUEUE_DELETION,
@@ -132,7 +132,7 @@ class GuildLogger:
         )
 
     async def log_timeout(
-        self, target: disnake.Member, timeout_duration: int, is_antiraid: bool = False
+            self, target: disnake.Member, timeout_duration: int, is_antiraid: bool = False
     ):
         await self._log_action(
             ActionType.TIMEOUT,
@@ -142,7 +142,7 @@ class GuildLogger:
         )
 
     async def log_nick_change(
-        self, target: disnake.Member, old_nickname: str, new_nickname: str
+            self, target: disnake.Member, old_nickname: str, new_nickname: str
     ):
         await self._log_action(
             ActionType.NICK_CHANGE,
@@ -152,7 +152,7 @@ class GuildLogger:
         )
 
     async def log_antispam(
-        self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str
+            self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str
     ):
         await self._log_action(
             ActionType.ANTISPAM,

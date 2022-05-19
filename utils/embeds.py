@@ -24,10 +24,10 @@ def init(emj: Emojis):
 
 class BaseEmbed(disnake.Embed):
     def __init__(
-        self,
-        ctx: Contextable | disnake.Member,
-        title: str,
-        description: str,
+            self,
+            ctx: Contextable | disnake.Member | disnake.User,
+            title: str,
+            description: str,
     ):
         super().__init__(
             color=COLOR, title=title, description=description, timestamp=datetime.now()
@@ -53,4 +53,4 @@ class WarningEmbed(BaseEmbed):
 
 class ErrorEmbed(BaseEmbed):
     def __init__(self, ctx: Contextable, description: str):
-        super().__init__(ctx, f"{emojis.exclamation} Error Occured", description)
+        super().__init__(ctx, f"{emojis.exclamation} Error Occurred", description)

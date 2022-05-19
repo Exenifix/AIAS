@@ -11,6 +11,7 @@ assignees: ''
 ...
 
 **Who would you like to implement this suggestion?**
+
 - [ ] myself
 - [ ] community
 - [ ] repository administration

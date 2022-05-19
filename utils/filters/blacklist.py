@@ -55,7 +55,7 @@ def _format_expression(expr: str) -> str:
 
 
 def _apply_common_blacklist_detection(
-    banned_words: list[str], expr: str
+        banned_words: list[str], expr: str
 ) -> tuple[bool, str]:
     curse_words = set(banned_words) & set(expr.split(" "))
     for word in curse_words:
@@ -65,7 +65,7 @@ def _apply_common_blacklist_detection(
 
 
 def _apply_wildcard_blacklist_detection(
-    banned_words: list[str], expr: str, break_immediately: bool
+        banned_words: list[str], expr: str, break_immediately: bool
 ) -> tuple[bool, str]:
     is_curse = False
     for word in banned_words:
@@ -79,7 +79,7 @@ def _apply_wildcard_blacklist_detection(
 
 
 def _apply_super_blacklist_detection(
-    banned_words: list[str], expr: str, break_immediately: bool
+        banned_words: list[str], expr: str, break_immediately: bool
 ) -> tuple[bool, str]:
     spaces_pos = _find_all_characters(expr, " ")
     is_curse, expr = _apply_wildcard_blacklist_detection(

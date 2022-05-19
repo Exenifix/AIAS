@@ -2,8 +2,8 @@ import re
 from typing import Generic, TypeVar
 
 import disnake
-from ai.analyser import analyse_sample, extract_mentions
 
+from ai.analyser import analyse_sample, extract_mentions
 from utils.embeds import BaseEmbed, SuccessEmbed
 from utils.enums import FetchMode, ViewResponse
 
@@ -42,10 +42,10 @@ class Button(disnake.ui.Button, Generic[T]):
 
 class BaseView(disnake.ui.View, Generic[T]):
     def __init__(
-        self,
-        user_id: int,
-        buttons: list[Button[T]],
-        disable_after_interaction: bool = True,
+            self,
+            user_id: int,
+            buttons: list[Button[T]],
+            disable_after_interaction: bool = True,
     ):
         self.value: T = None
         self.inter: disnake.MessageInteraction = None

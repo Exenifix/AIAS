@@ -1,15 +1,15 @@
-from datetime import datetime
 import sys
 from collections import namedtuple
+from datetime import datetime
 from os import getenv
 from random import choice
 from typing import Any, Optional
 
 import asyncpg
-from ai.analyser import analyse_sample, extract_mentions
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
+from ai.analyser import analyse_sample
 from utils import autocomplete, errors
 from utils.constants import SPAM_VERIFICATION_THRESHOLD
 from utils.db_updater import update_db
@@ -471,7 +471,7 @@ class GuildData:
     async def get_log_channel_id(self) -> Optional[int]:
         return await self._select("log_channel", fetch_mode=FetchMode.VAL)
 
-    async def set_log_channel_id(self, id: int):
+    async def set_log_channel_id(self, id: int | None):
         await self._update(log_channel=id)
 
     async def get_logger(self, bot) -> GuildLogger:

@@ -2,6 +2,7 @@ from datetime import datetime
 
 import disnake
 from disnake.ext import commands
+
 from utils.bot import Bot
 from utils.embeds import WarningEmbed
 from utils.enums import Stat
@@ -34,11 +35,11 @@ class Automod(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
         if (
-            message.author.bot
-            or message.channel.type == disnake.ChannelType.private
-            or len(message.content) == 0
-            or message.author.guild_permissions.manage_guild
-            or not message.channel.permissions_for(message.guild.me).send_messages
+                message.author.bot
+                or message.channel.type == disnake.ChannelType.private
+                or len(message.content) == 0
+                or message.author.guild_permissions.manage_guild
+                or not message.channel.permissions_for(message.guild.me).send_messages
         ):
             return
 
@@ -71,16 +72,17 @@ class Automod(commands.Cog):
                 return
         except disnake.Forbidden:
             if (
-                message.guild.id not in self.permission_warnings
-                or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
-                >= 120
+                    message.guild.id not in self.permission_warnings
+                    or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
+                    >= 120
             ):
                 self.permission_warnings[message.guild.id] = datetime.now()
                 await message.channel.send(
                     embed=WarningEmbed(
                         message,
                         title="Missing Permissions",
-                        description="The bot is missing `MANAGE MESSAGES` permission and cannot apply filters. Please grant the required permission to the bot.",
+                        description="The bot is missing `MANAGE MESSAGES` permission and cannot apply filters. \
+Please grant the required permission to the bot.",
                     )
                 )
         except disnake.NotFound:
@@ -109,7 +111,8 @@ class Automod(commands.Cog):
                 return
             await try_send(
                 member,
-                f"Your current name on **{member.guild.name}** does not pass its blacklist filter, so you were given randomly generated **{nick}** nickname.",
+                f"Your current name on **{member.guild.name}** does not pass its blacklist filter, \
+so you were given randomly generated **{nick}** nickname.",
             )
             log = await guild_data.get_logger(self.bot)
             await log.log_nick_change(member, old_nick, nick)

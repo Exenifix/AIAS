@@ -1,6 +1,7 @@
 from typing import Literal
 
 import disnake
+
 from ai.predictor import is_spam
 from utils.bot import Bot
 from utils.constants import MAX_SPAM_QUEUE_SIZE
@@ -94,9 +95,9 @@ class AntiSpamProcessor:
         guild_data = self.bot.db.get_guild(message.guild.id)
         antispam = await guild_data.get_antispam_data()
         if (
-            not antispam.enabled
-            or message.channel.id in antispam.ignored
-            or any(r.id in antispam.ignored for r in message.author.roles)
+                not antispam.enabled
+                or message.channel.id in antispam.ignored
+                or any(r.id in antispam.ignored for r in message.author.roles)
         ):
             return False
 
@@ -129,8 +130,8 @@ class BlacklistQueueProcessor(MessageQueueProcessor):
         full_content = " ".join([m.content for m in queue])
         guild_data = self.bot.db.get_guild(message.guild.id)
         if is_blacklisted(
-            await guild_data.get_blacklist_data(),
-            full_content,
+                await guild_data.get_blacklist_data(),
+                full_content,
         )[0]:
             warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
@@ -164,9 +165,9 @@ class BlacklistProcessor:
         guild = self.bot.db.get_guild(message.guild.id)
         blacklist = await guild.get_blacklist_data()
         if (
-            not blacklist.enabled
-            or message.channel.id in blacklist.ignored
-            or any(r.id in blacklist.ignored for r in message.author.roles)
+                not blacklist.enabled
+                or message.channel.id in blacklist.ignored
+                or any(r.id in blacklist.ignored for r in message.author.roles)
         ):
             return False
 
@@ -207,9 +208,9 @@ class WhitelistProcessor:
         guild_data = self.bot.db.get_guild(message.guild.id)
         data = await guild_data.get_whitelist_data()
         if (
-            not data.enabled
-            or message.channel.id in data.ignored
-            or any(r.id in data.ignored for r in message.author.roles)
+                not data.enabled
+                or message.channel.id in data.ignored
+                or any(r.id in data.ignored for r in message.author.roles)
         ):
             return False
 

@@ -5,6 +5,7 @@ from exencolorlogs import Logger
 from numpy import array
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
+
 from utils.datamodels import Database
 from utils.enums import FetchMode
 

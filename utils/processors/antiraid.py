@@ -1,6 +1,7 @@
 from random import randint
 
 import disnake
+
 from utils.bot import Bot
 from utils.embeds import WarningEmbed
 from utils.enums import AntiraidPunishment
@@ -46,9 +47,9 @@ class AntiraidProcessor:
             return 0
 
         if (
-            len(queue) == antiraid.members_limit
-            and (queue.popright().joined_at - queue.popleft().joined_at).seconds
-            < antiraid.join_interval
+                len(queue) == antiraid.members_limit
+                and (queue.popright().joined_at - queue.popleft().joined_at).seconds
+                < antiraid.join_interval
         ):
             log = await guild_data.get_logger(self.bot)
             for member in queue:

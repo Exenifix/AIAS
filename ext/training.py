@@ -1,6 +1,7 @@
 import disnake
-from ai.predictor import is_spam
 from disnake.ext import commands
+
+from ai.predictor import is_spam
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
 from utils.enums import ViewResponse

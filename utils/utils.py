@@ -8,9 +8,9 @@ T = TypeVar("T")
 
 class Queue(Generic[T]):
     def __init__(
-        self,
-        initial_values: Optional[Sequence[T]] = None,
-        max_size: Optional[int] = None,
+            self,
+            initial_values: Optional[Sequence[T]] = None,
+            max_size: Optional[int] = None,
     ):
         if initial_values is None:
             self._data = deque()
@@ -65,7 +65,7 @@ def split_text(text: str, symbols_per_string: Optional[int] = 100) -> list[str]:
     new_texts = []
     text_length = len(text)
     for i in range(0, text_length, symbols_per_string):
-        new_texts.append(text[i : i + symbols_per_string])
+        new_texts.append(text[i: i + symbols_per_string])
 
     return new_texts
 
