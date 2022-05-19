@@ -20,7 +20,7 @@ platformdirs==2.5.2
 psutil==5.9.0
 python-dotenv==0.20.0
 scikit-learn==1.1.0
-scipy==1.8.0
+scipy==1.8.1
 threadpoolctl==3.1.0
 tomli==2.0.1
 yarl==1.7.2
