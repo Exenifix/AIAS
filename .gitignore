@@ -1,4 +1,5 @@
 .env
+.idea
 venv
 __pycache__
 models
