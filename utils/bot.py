@@ -162,7 +162,7 @@ class WarningsManager:
         self._warnings[message.guild.id][message.author.id] += 1
         guild_data = self.bot.db.get_guild(message.guild.id)
         duration, threshold = await guild_data.get_warnings_data()
-        if current_warnings >= threshold:
+        if current_warnings >= threshold and message.author.current_timeout is None:
             await message.channel.send(
                 f"**{self.bot.sys_emojis.checkmark} {message.author.mention}, enjoy your mute!**"
             )
