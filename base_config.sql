@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS version_data
 );
 
 INSERT INTO version_data (id, version)
-VALUES (0, 8)
+VALUES (0, 9)
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules

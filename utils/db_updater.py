@@ -2,7 +2,7 @@ from ai.analyser import analyse_sample
 
 from utils.enums import FetchMode
 
-version = 8
+version = 9
 
 
 async def update_db(db):
@@ -85,6 +85,25 @@ async def update_db(db):
                         "INSERT INTO stats (id) VALUES (0), (1), (2), (3), (4)",
                         "INSERT INTO resets (id) VALUES (0)",
                     ]
+
+                case 9:
+                    db.log.info("Executing data correction algorithm #9...")
+                    r: set[dict] = set(
+                        await db.execute(
+                            "SELECT is_spam, total_chars, unique_chars, total_words, unique_words FROM data",
+                            fetch_mode=FetchMode.ALL,
+                        )
+                    )
+                    for record in r:
+                        await db.execute(
+                            "UPDATE data SET is_spam = $1 WHERE total_chars = $2 AND unique_chars = $3 AND total_words = $4 AND unique_words = $5",
+                            *record.values()
+                        )
+
+                    db.log.warning(
+                        "Data correction successful, please retrain the model!"
+                    )
+
             for sql in sqls:
                 async with db._pool.acquire() as con:
                     async with con.transaction():
