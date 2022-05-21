@@ -24,10 +24,10 @@ def init(emj: Emojis):
 
 class BaseEmbed(disnake.Embed):
     def __init__(
-            self,
-            ctx: Contextable | disnake.Member | disnake.User,
-            title: str,
-            description: str,
+        self,
+        ctx: Contextable | disnake.Member | disnake.User,
+        title: str,
+        description: str,
     ):
         super().__init__(
             color=COLOR, title=title, description=description, timestamp=datetime.now()

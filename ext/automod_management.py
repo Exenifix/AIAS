@@ -18,7 +18,7 @@ class BlacklistManagement(commands.Cog):
             self.templates: dict[str, list[str]] = json.load(f)
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ) -> bool:
         return await is_automod_manager(self.bot, inter)
 
@@ -51,7 +51,7 @@ class BlacklistManagement(commands.Cog):
         description="Set whether to send the censored versions of the messages upon blacklisted expressions detection.",
     )
     async def blacklist_setfilter(
-            self, inter: disnake.ApplicationCommandInteraction, value: bool
+        self, inter: disnake.ApplicationCommandInteraction, value: bool
     ):
         await self.bot.db.get_guild(inter.guild.id).set_blacklist_filter_enabled(value)
         await inter.send(
@@ -65,12 +65,12 @@ class BlacklistManagement(commands.Cog):
         name="list", description="Lists all the blacklisted expressions."
     )
     async def blacklist_list(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            hidden: bool = commands.Param(
-                True,
-                description="Whether to send the message as ephemeral, invisible to others.",
-            ),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        hidden: bool = commands.Param(
+            True,
+            description="Whether to send the message as ephemeral, invisible to others.",
+        ),
     ):
         bl = await self.bot.db.get_guild(inter.guild.id).get_blacklist_data()
         embed = BaseEmbed(
@@ -106,12 +106,12 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         name="add", description="Adds a new blacklisted expression."
     )
     async def blacklist_add(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            mode: BlacklistMode = commands.Param(
-                description="See the `/blacklist list` for more info about modes."
-            ),
-            expression: str = commands.Param(),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        mode: BlacklistMode = commands.Param(
+            description="See the `/blacklist list` for more info about modes."
+        ),
+        expression: str = commands.Param(),
     ):
         mode = BlacklistMode(mode)
         expression = preformat(expression, mode)
@@ -135,12 +135,12 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         description="Adds several words to the blacklist. The words must be separated by commas.",
     )
     async def blacklist_addmany(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            mode: BlacklistMode = commands.Param(
-                description="See the `/blacklist list` for more info about modes."
-            ),
-            words: str = commands.Param(description="The words separated by commas."),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        mode: BlacklistMode = commands.Param(
+            description="See the `/blacklist list` for more info about modes."
+        ),
+        words: str = commands.Param(description="The words separated by commas."),
     ):
         mode = BlacklistMode(mode)
         await inter.response.defer()
@@ -157,12 +157,12 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         name="remove", description="Removes a blacklisted expression."
     )
     async def blacklist_remove(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            mode: BlacklistMode = commands.Param(
-                description="See the `/blacklist list` for more info about modes."
-            ),
-            expression: str = commands.Param(),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        mode: BlacklistMode = commands.Param(
+            description="See the `/blacklist list` for more info about modes."
+        ),
+        expression: str = commands.Param(),
     ):
         mode = BlacklistMode(mode)
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_word(
@@ -180,9 +180,9 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         name="clear", description="Clears a certain blacklist (or all)."
     )
     async def blacklist_clear(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            mode: str = commands.Param(choices=[m.value for m in BlacklistMode] + ["all"]),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        mode: str = commands.Param(choices=[m.value for m in BlacklistMode] + ["all"]),
     ):
         if mode == "all":
             mode = None
@@ -218,7 +218,7 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         name="addrole", description="Adds a role to the blacklist ignored roles."
     )
     async def bi_addrole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_ignored(role.id)
         await inter.send(
@@ -231,7 +231,7 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         name="addchannel", description="Adds a channel to the blacklist ignored roles."
     )
     async def bi_addchannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).add_blacklist_ignored(channel.id)
         await inter.send(
@@ -245,7 +245,7 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         description="Removes a role from the blacklist ignored roles.",
     )
     async def bi_removerole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_ignored(role.id)
         await inter.send(
@@ -259,7 +259,7 @@ This can also detect words *across several messages*. Example: blacklisted - `fr
         description="Removes a channel from the blacklist ignored roles.",
     )
     async def bi_removechannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_blacklist_ignored(channel.id)
         await inter.send(
@@ -274,7 +274,7 @@ class AntiSpamManagement(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ):
         return await is_automod_manager(self.bot, inter)
 
@@ -308,7 +308,7 @@ class AntiSpamManagement(commands.Cog):
         name="addrole", description="Adds a role to the antispam ignored roles."
     )
     async def as_addrole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_antispam_ignored(role.id)
         await inter.send(
@@ -322,7 +322,7 @@ class AntiSpamManagement(commands.Cog):
         description="Adds a channel to the antispam ignored channels.",
     )
     async def as_addchannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).add_antispam_ignored(channel.id)
         await inter.send(
@@ -336,7 +336,7 @@ class AntiSpamManagement(commands.Cog):
         description="Removes a role from the antispam ignored roles.",
     )
     async def as_removerole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_antispam_ignored(role.id)
         await inter.send(
@@ -350,7 +350,7 @@ class AntiSpamManagement(commands.Cog):
         description="Removes a channel from the antispam ignored channels.",
     )
     async def as_removechannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_antispam_ignored(channel.id)
         await inter.send(
@@ -367,7 +367,7 @@ class WhitelistManagement(commands.Cog):
             self.templates: dict[str, str] = json.load(f)
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ):
         return await is_automod_manager(self.bot, inter)
 
@@ -398,7 +398,7 @@ class WhitelistManagement(commands.Cog):
         description="Sets the characters that should be **only** be allowed in this server.",
     )
     async def whitelist_setcharacters(
-            self, inter: disnake.ApplicationCommandInteraction, characters: str
+        self, inter: disnake.ApplicationCommandInteraction, characters: str
     ):
         guild_data = self.bot.db.get_guild(inter.guild.id)
         data = await guild_data.get_whitelist_data()
@@ -469,7 +469,7 @@ __**Are you sure you want to overwrite the existing characters with the new ones
         name="addrole", description="Adds a role to the whitelist ignored roles."
     )
     async def wl_addrole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_whitelist_ignored(role.id)
         await inter.send(
@@ -483,7 +483,7 @@ __**Are you sure you want to overwrite the existing characters with the new ones
         description="Adds a channel to the whitelist ignored channels.",
     )
     async def wl_addchannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).add_whitelist_ignored(channel.id)
         await inter.send(
@@ -497,7 +497,7 @@ __**Are you sure you want to overwrite the existing characters with the new ones
         description="Removes a role from the whitelist ignored roles.",
     )
     async def wl_removerole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_whitelist_ignored(role.id)
         await inter.send(
@@ -511,7 +511,7 @@ __**Are you sure you want to overwrite the existing characters with the new ones
         description="Removes a channel from the whitelist ignored channels.",
     )
     async def wl_removechannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_whitelist_ignored(channel.id)
         await inter.send(
@@ -526,7 +526,7 @@ class NickfilterManagement(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ) -> bool:
         return await is_automod_manager(self.bot, inter)
 
@@ -558,7 +558,7 @@ class NickfilterManagement(commands.Cog):
         name="addrole", description="Adds a role to the NickFilter ignored roles."
     )
     async def nf_addrole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_nickfilter_ignored(role.id)
         await inter.send(
@@ -572,7 +572,7 @@ class NickfilterManagement(commands.Cog):
         description="Removes a role from the NickFilter ignored roles.",
     )
     async def nf_removerole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_nickfilter_ignored(role.id)
         await inter.send(
@@ -587,7 +587,7 @@ class Automation(commands.Cog):
         self.bot = bot
 
     async def cog_message_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ) -> bool:
         if inter.author.guild_permissions.manage_messages:
             return True
@@ -596,7 +596,7 @@ class Automation(commands.Cog):
 
     @commands.message_command(name="Delete and Warn")
     async def delete_and_warn(
-            self, inter: disnake.MessageCommandInteraction, message: disnake.Message
+        self, inter: disnake.MessageCommandInteraction, message: disnake.Message
     ):
         await message.delete()
         warnings = await self.bot.warnings.add_warning(message)
@@ -618,7 +618,7 @@ class AutotimeoutManagement(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, interaction: disnake.ApplicationCommandInteraction
+        self, interaction: disnake.ApplicationCommandInteraction
     ):
         return await is_automod_manager(self.bot, interaction)
 
@@ -627,9 +627,9 @@ class AutotimeoutManagement(commands.Cog):
         description="Sets the warnings threshold - the amount of warnings member receives before getting timeouted.",
     )
     async def setwarningsthreshold(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            amount: int = commands.Param(gt=0, le=10),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        amount: int = commands.Param(gt=0, le=10),
     ):
         await self.bot.db.get_guild(inter.guild.id).set_warnings_threshold(amount)
         await inter.send(
@@ -642,11 +642,11 @@ class AutotimeoutManagement(commands.Cog):
         name="settimeoutduration", description="Sets the timeout duration for automod."
     )
     async def settimeoutduration(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            duration: int = commands.Param(
-                description="The duration in minutes.", gt=0, le=80000
-            ),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        duration: int = commands.Param(
+            description="The duration in minutes.", gt=0, le=80000
+        ),
     ):
         await self.bot.db.get_guild(inter.guild.id).set_timeout_duration(duration)
         await inter.send(
@@ -661,7 +661,7 @@ class AntiraidManagement(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ) -> bool:
         return await is_automod_manager(self.bot, inter)
 
@@ -691,10 +691,10 @@ class AntiraidManagement(commands.Cog):
         name="setup", description="Set how many members can join per certain interval."
     )
     async def setup(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            members: int = commands.Param(ge=3, le=15),
-            interval: int = commands.Param(description="In seconds", ge=5, le=120),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        members: int = commands.Param(ge=3, le=15),
+        interval: int = commands.Param(description="In seconds", ge=5, le=120),
     ):
         guild_data = self.bot.db.get_guild(inter.guild.id)
         await guild_data.set_antiraid_members_limit(members)
@@ -710,9 +710,9 @@ class AntiraidManagement(commands.Cog):
         name="setpunishment", description="Set punishment for raiders."
     )
     async def setpunishment(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            punishment: AntiraidPunishment,
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        punishment: AntiraidPunishment,
     ):
         await self.bot.db.get_guild(inter.guild.id).set_antiraid_punishment(punishment)
         await inter.send(

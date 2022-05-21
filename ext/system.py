@@ -22,7 +22,7 @@ class SystemListeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_slash_command_error(
-            self, inter: disnake.Interaction, error: commands.CommandError
+        self, inter: disnake.Interaction, error: commands.CommandError
     ):
         msg = get_error_message(inter, error)
 
@@ -92,7 +92,7 @@ class SystemLoops(commands.Cog):
         )
         if self.last_amount_submitted != guilds_count:
             async with aiohttp.ClientSession(
-                    headers={"Authorization": self.tgg_token}
+                headers={"Authorization": self.tgg_token}
             ) as session:
                 r = await session.post(
                     f"https://top.gg/api/bots/962093056910323743/stats",
@@ -121,7 +121,7 @@ class SystemCommands(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ) -> bool:
         is_owner = await self.bot.is_owner(inter.author)
         if is_owner:
@@ -178,10 +178,10 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
         guild_ids=TRAIN_GUILD_IDS,
     )
     async def execsql(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            query: str,
-            fetch_mode: FetchMode,
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        query: str,
+        fetch_mode: FetchMode,
     ):
         fetch_mode = FetchMode(fetch_mode)
         r = await self.bot.db.execute(query, fetch_mode=fetch_mode)
