@@ -65,6 +65,8 @@ class GuildLogger:
                         else msg.content
                     )
                     text += f"[**{msg.author}**]: {content}\n"
+                if len(text) < 0:
+                    return
                 embed.add_field("Deleted Messages", text, inline=False)
 
             case ActionType.ANTISPAM:
