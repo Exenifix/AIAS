@@ -90,7 +90,7 @@ async def update_db(db):
                     db.log.info("Executing data correction algorithm #9...")
                     r: set[dict] = set(
                         await db.execute(
-                            "SELECT is_spam, total_chars, unique_chars, total_words, unique_words FROM data",
+                            "SELECT is_spam, total_chars, unique_chars, total_words, unique_words FROM data WHERE is_spam IS NOT NULL",
                             fetch_mode=FetchMode.ALL,
                         )
                     )
