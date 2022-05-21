@@ -4,6 +4,7 @@ from disnake.ext import commands
 from ai.predictor import is_spam
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
+from utils.embeds import SuccessEmbed
 from utils.enums import ViewResponse
 from utils.views import PhraseProcessingView
 
@@ -65,6 +66,20 @@ class Training(commands.Cog):
                 ephemeral=True,
             )
             raise e
+
+    @commands.slash_command(
+        name="overwrite",
+        description="Overwrites a message for AI model.",
+        guild_ids=TRAIN_GUILD_IDS,
+    )
+    @commands.is_owner()
+    async def overwrite(
+        self, inter: disnake.ApplicationCommandInteraction, content: str, spam: bool
+    ):
+        await self.bot.db.update_sample(content, spam)
+        await inter.send(
+            embed=SuccessEmbed(inter, "Successfully overwrote this sample!")
+        )
 
 
 def setup(bot: Bot):
