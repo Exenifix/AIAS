@@ -1,7 +1,7 @@
 import inspect
 import sys
 
-from disnake import ApplicationCommandInteraction, Forbidden, Interaction
+from disnake import Forbidden, Interaction
 from disnake.ext import commands
 
 UNKNOWN = object()
@@ -119,7 +119,9 @@ default_answers = {
 }
 
 
-def get_error_message(ctx: commands.Context | Interaction, error: commands.CommandError):
+def get_error_message(
+    ctx: commands.Context | Interaction, error: commands.CommandError
+):
     if type(error) not in known_exceptions:
         return UNKNOWN
 

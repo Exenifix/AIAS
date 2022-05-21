@@ -2,7 +2,6 @@ import sys
 from collections import namedtuple
 from datetime import datetime
 from os import getenv
-from random import choice
 from typing import Any, Optional
 
 import asyncpg
@@ -11,7 +10,6 @@ from exencolorlogs import Logger
 
 from ai.analyser import analyse_sample
 from utils import autocomplete, errors
-from utils.constants import SPAM_VERIFICATION_THRESHOLD
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
 from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
@@ -58,7 +56,9 @@ class Database:
         await self._pool.close()
         self.log.ok("Connection pool closed successfully")
 
-    async def execute(self, query: str, *args, fetch_mode: FetchMode = FetchMode.NONE):
+    async def execute(
+        self, query: str, *args, fetch_mode: FetchMode = FetchMode.NONE
+    ) -> None | list[dict] | dict | Any:
         async with self._pool.acquire() as con:
             con: asyncpg.Connection
             match fetch_mode:
@@ -89,7 +89,8 @@ class Database:
     async def register_message(self, content: str):
         data = analyse_sample(content)
         await self.execute(
-            "INSERT INTO data (total_chars, unique_chars, total_words, unique_words, content) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
+            "INSERT INTO data (total_chars, unique_chars, total_words, unique_words, content) \
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
             *data,
         )
 
@@ -103,27 +104,34 @@ class Database:
                 "UPDATE data SET downvotes = downvotes + 1 WHERE id = $1", id
             )
 
-    async def get_random_record(self) -> tuple[int, str]:
-        records = await self.execute(
-            "SELECT id, content FROM data WHERE upvotes + downvotes < $1 AND is_spam IS NULL LIMIT 50",
-            SPAM_VERIFICATION_THRESHOLD,
-            fetch_mode=FetchMode.ALL,
-        )
-        if len(records) == 0:
-            return None, None
-        return tuple(choice(records).values())
+    async def mark_message_as_spam(self, content: str, is_spam: bool):
+        await self.update_sample(content, is_spam)
 
-    async def mark_message_as_spam(self, id: int, is_spam: bool):
-        await self.execute("UPDATE data SET is_spam = $1 WHERE id = $2", is_spam, id)
-
-    async def get_unmarked_message(self):
+    async def get_unmarked_message(self) -> str | None:
         record = await self.execute(
             "SELECT MIN(id) AS id, content FROM data WHERE is_spam IS NULL GROUP BY id LIMIT 1",
             fetch_mode=FetchMode.ROW,
         )
         if record is None:
-            return None, None
-        return tuple(record.values())
+            return None
+        return record["content"]
+
+    async def update_sample(self, content: str, is_spam: bool):
+        analysis_data = analyse_sample(content)
+        exists: bool = await self.execute(
+            "SELECT EXISTS(SELECT 1 FROM data WHERE total_chars = $1 AND unique_chars = $2 AND total_words = $3 AND unique_words = $4)",
+            *analysis_data[:4],
+            fetch_mode=FetchMode.VAL,
+        )
+        if not exists:
+            await self.register_message(content)
+            return
+
+        await self.execute(
+            "UPDATE data SET is_spam = $1 WHERE total_chars = $2 AND unique_chars = $3 AND total_words = $4 AND unique_words = $5",
+            is_spam,
+            *analysis_data[:4],
+        )
 
     async def register_stat_increase(self, stat: Stat, amount: int = 1):
         await self.execute(
@@ -300,7 +308,7 @@ class GuildData:
 
     async def remove_antispam_ignored(self, value: int):
         try:
-            ignored = await self._select("antispam_ignored", FetchMode.VAL)
+            ignored: list[int] = await self._select("antispam_ignored", FetchMode.VAL)
             ignored.remove(value)
             await self._update(antispam_ignored=ignored)
         except ValueError:

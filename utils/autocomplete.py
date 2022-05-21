@@ -9,7 +9,6 @@ def invalidate_rules(id: int):
 
 async def autocomplete_rules(inter: disnake.ApplicationCommandInteraction, arg: str):
     arg = arg.lower()
-    result = []
     if inter.guild.id in rules_cache:
         result = rules_cache[inter.guild.id]
     else:

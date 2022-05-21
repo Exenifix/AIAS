@@ -14,10 +14,10 @@ analysis_data = namedtuple(
 
 def extract_mentions(content: str) -> str:
     for name, regex in (
-            ("c", CHANNEL_REGEX),
-            ("r", ROLE_REGEX),
-            ("m", MENTION_REGEX),
-            ("e", EMOJI_REGEX),
+        ("c", CHANNEL_REGEX),
+        ("r", ROLE_REGEX),
+        ("m", MENTION_REGEX),
+        ("e", EMOJI_REGEX),
     ):
         entries: set[str] = set(re.findall(regex, content))
         for i, entry in enumerate(entries):

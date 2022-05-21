@@ -24,8 +24,8 @@ class Training(commands.Cog):
 
         try:
             while res not in (ViewResponse.EXIT, ViewResponse.TIMEOUT):
-                id, rec = await self.bot.db.get_unmarked_message()
-                if id is None:
+                content = await self.bot.db.get_unmarked_message()
+                if content is None:
                     await inter.send(
                         f"No more records to analyse left!", ephemeral=True
                     )
@@ -34,21 +34,21 @@ class Training(commands.Cog):
                 view = PhraseProcessingView(inter.author.id)
                 await inter.send(
                     embed=disnake.Embed(
-                        title="Is this message a spam?", description=f"{rec}"
-                    )
-                    .add_field(
-                        "AI Prediction", "YES" if is_spam(rec) else "NO", inline=False
-                    )
-                    .add_field("ID", str(id), inline=False),
+                        title="Is this message a spam?", description=f"{content}"
+                    ).add_field(
+                        "AI Prediction",
+                        "YES" if is_spam(content) else "NO",
+                        inline=False,
+                    ),
                     view=view,
                     ephemeral=True,
                 )
                 res, inter = await view.get_result()
                 if res == ViewResponse.YES:
-                    await self.bot.db.mark_message_as_spam(id, True)
+                    await self.bot.db.mark_message_as_spam(content, True)
 
                 elif res == ViewResponse.NO:
-                    await self.bot.db.mark_message_as_spam(id, False)
+                    await self.bot.db.mark_message_as_spam(content, False)
 
                 elif res == ViewResponse.EXIT:
                     await inter.send(f"Messages validated!", ephemeral=True)

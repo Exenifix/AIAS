@@ -3,9 +3,8 @@ from typing import Generic, TypeVar
 
 import disnake
 
-from ai.analyser import analyse_sample, extract_mentions
 from utils.embeds import BaseEmbed, SuccessEmbed
-from utils.enums import FetchMode, ViewResponse
+from utils.enums import ViewResponse
 
 T = TypeVar("T")
 
@@ -36,16 +35,15 @@ class Button(disnake.ui.Button, Generic[T]):
         self.return_value = return_value
 
     async def callback(self, interaction: disnake.MessageInteraction):
-        self.view: BaseView
         self.view.set_value(self.return_value, interaction)
 
 
 class BaseView(disnake.ui.View, Generic[T]):
     def __init__(
-            self,
-            user_id: int,
-            buttons: list[Button[T]],
-            disable_after_interaction: bool = True,
+        self,
+        user_id: int,
+        buttons: list[Button[T]],
+        disable_after_interaction: bool = True,
     ):
         self.value: T = None
         self.inter: disnake.MessageInteraction = None
@@ -144,22 +142,9 @@ class ReportedNotSpamView(disnake.ui.View):
     )
     async def antispam_overwrite(self, _, inter: disnake.MessageInteraction):
         embed = inter.message.embeds[0]
-        content = _get_field(embed, "Reported Content")
+        content = _get_field(embed, "Reported Content")[3:-3]
 
-        content = extract_mentions(content[3:-3].lower())
-        id = await inter.bot.db.execute(
-            "SELECT id FROM data WHERE content = $1", content, fetch_mode=FetchMode.VAL
-        )
-        if id is None:
-            data = analyse_sample(content)
-            await inter.bot.db.execute(
-                "INSERT INTO data (total_chars, unique_chars, total_words, unique_words, content) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
-                *data,
-            )
-        else:
-            await inter.bot.db.execute(
-                "UPDATE data SET is_spam = FALSE WHERE id = $1", id
-            )
+        await inter.bot.db.update_sample(content, True)
 
         await inter.message.edit(view=None)
         await inter.send(

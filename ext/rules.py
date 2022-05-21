@@ -13,7 +13,7 @@ class RulesManagement(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ):
         return await is_automod_manager(self.bot, inter)
 
@@ -21,7 +21,7 @@ class RulesManagement(commands.Cog):
         name="addrule", description="Adds a single rule to the rules storage."
     )
     async def addrule(
-            self, inter: disnake.ApplicationCommandInteraction, key: str, value: str
+        self, inter: disnake.ApplicationCommandInteraction, key: str, value: str
     ):
         await self.bot.db.get_guild(inter.guild.id).add_rule(key, value)
         await inter.send(embed=SuccessEmbed(inter, "Successfully added a new rule."))
@@ -84,9 +84,9 @@ class Rules(commands.Cog):
     )
     @commands.cooldown(1, 10, commands.BucketType.member)
     async def select_rule(
-            self,
-            inter: disnake.ApplicationCommandInteraction,
-            key: str = commands.Param(autocomplete=autocomplete_rules),
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        key: str = commands.Param(autocomplete=autocomplete_rules),
     ):
         rule = await self.bot.db.get_guild(inter.guild.id).get_rule(key)
         await inter.send(embed=BaseEmbed(inter, f"Rule {key}", rule))

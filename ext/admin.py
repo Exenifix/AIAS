@@ -10,7 +10,7 @@ class Administration(commands.Cog):
         self.bot = bot
 
     async def cog_slash_command_check(
-            self, inter: disnake.ApplicationCommandInteraction
+        self, inter: disnake.ApplicationCommandInteraction
     ):
         if inter.author.guild_permissions.manage_guild:
             return True
@@ -26,7 +26,7 @@ class Administration(commands.Cog):
         description="Adds a manager role. Managers have permissions to modify filters.",
     )
     async def admin_addmanagerrole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).add_automod_manager(role.id)
         await inter.send(
@@ -40,7 +40,7 @@ class Administration(commands.Cog):
         description="Adds a manager member. Managers have permissions to modify filters.",
     )
     async def admin_addmanagermember(
-            self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member
+        self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member
     ):
         await self.bot.db.get_guild(inter.guild.id).add_automod_manager(member.id)
         await inter.send(
@@ -53,7 +53,7 @@ class Administration(commands.Cog):
         name="removemanagerrole", description="Removes a role from managers."
     )
     async def admin_removemanagerrole(
-            self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
+        self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_automod_manager(role.id)
         await inter.send(
@@ -66,7 +66,7 @@ class Administration(commands.Cog):
         name="removemanagermember", description="Removes a member from managers."
     )
     async def admin_removemanagermember(
-            self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member
+        self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member
     ):
         await self.bot.db.get_guild(inter.guild.id).remove_automod_manager(member.id)
         await inter.send(
@@ -79,7 +79,7 @@ class Administration(commands.Cog):
         name="setlogchannel", description="Sets a channel for logs."
     )
     async def setlogchannel(
-            self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
+        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
     ):
         if not channel.permissions_for(inter.me).send_messages:
             await inter.send(
