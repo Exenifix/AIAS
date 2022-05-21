@@ -23,7 +23,7 @@ def _fetch_target(embed: disnake.Embed) -> int | None:
         return None
 
     try:
-        id = int(re.search(TARGET_ID_PATTERN, target_field).group())
+        id = int(re.search(TARGET_ID_PATTERN, target_field).group().replace("`", ""))
         return id
     except (AttributeError, ValueError):
         return None
@@ -148,7 +148,7 @@ class ReportedNotSpamView(disnake.ui.View):
 
         await inter.message.edit(view=None)
         await inter.send(
-            f"Successfully updated sample `#{id}`. Retraining required.", ephemeral=True
+            f"Successfully updated samples. Retraining required.", ephemeral=True
         )
 
     @disnake.ui.button(
