@@ -58,7 +58,7 @@ class MessageQueueProcessor:
 class AntiSpamQueueProcessor(MessageQueueProcessor):
     async def process(self, message: disnake.Message) -> bool:
         queue = self.add(message)
-        if queue == False:
+        if queue is False:
             return False
 
         full_content = " ".join([m.content for m in queue])
@@ -73,6 +73,7 @@ class AntiSpamQueueProcessor(MessageQueueProcessor):
                         description=f"A sequence of messages ({len(queue)}) sent by {message.author.mention} was deleted.\n\
 This member will be muted in **{warnings} warnings.**",
                     ),
+                    delete_after=5,
                 )
             log = await self.bot.db.get_guild(message.guild.id).get_logger(self.bot)
             await log.log_queue_deletion(message.author, message.channel, queue)
@@ -113,6 +114,7 @@ class AntiSpamProcessor:
                         description=f"A message sent by {message.author.mention} was deleted.\n\
 This member will be muted in **{warnings} warnings.**",
                     ),
+                    delete_after=5,
                 )
             log = await guild_data.get_logger(self.bot)
             await log.log_antispam(message.author, message.channel, message.content)
@@ -143,6 +145,7 @@ class BlacklistQueueProcessor(MessageQueueProcessor):
                         description=f"A sequence of messages ({len(queue)}) sent by {message.author.mention} was deleted.\n\
 This member will be muted in **{warnings} warnings.**",
                     ),
+                    delete_after=5,
                 )
             log = await guild_data.get_logger(self.bot)
             await log.log_queue_deletion(message.author, message.channel, queue)
@@ -184,10 +187,12 @@ class BlacklistProcessor:
 This member will be muted in **{warnings} warnings.**",
                 )
                 if expr is not None:
-                    embed.add_field("Censoured Version", f"```{expr}```", inline=False)
+                    embed.add_field("Censored Version", f"```{expr}```", inline=False)
 
                 await message.channel.send(
-                    f"**{message.author.mention}, do not curse!**", embed=embed
+                    f"**{message.author.mention}, do not curse!**",
+                    embed=embed,
+                    delete_after=5,
                 )
                 log = await guild.get_logger(self.bot)
                 await log.log_single_deletion(
@@ -226,7 +231,8 @@ class WhitelistProcessor:
                     title="Fonts Detected",
                     description=f"{message.author.mention}, your message was removed because it contains blacklisted symbols.\n\
 Blocked symbols: `{'`, `'.join(chars)}`.",
-                )
+                ),
+                delete_after=5,
             )
             log = await guild_data.get_logger(self.bot)
             await log.log_single_deletion(

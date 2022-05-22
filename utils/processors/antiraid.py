@@ -61,7 +61,7 @@ class AntiraidProcessor:
                                 member,
                                 title="AntiRaid",
                                 description=f"You were banned from {member.guild.name} because of suspect of raid. \
-    If it was a mistake, staff members will unban you.",
+If it was a mistake, staff members will unban you.",
                             ),
                         )
                         await member.ban(reason="Antiraid")
@@ -87,7 +87,7 @@ class AntiraidProcessor:
                                 member,
                                 title="AntiRaid",
                                 description=f"You were timeouted in {member.guild.name} for `{duration}` minutes because of suspect of raid. \
-    If it was a mistake, staff members will untimeout you.",
+If it was a mistake, staff members will untimeout you.",
                             ),
                         )
                         await member.timeout(duration=duration * 60)
