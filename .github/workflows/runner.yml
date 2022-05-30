@@ -32,3 +32,6 @@ jobs:
       - name: Display Bot Logs
         timeout-minutes: 5
         run: python3 read_logs.py
+
+      - name: Prune Unused Images
+        run: docker image prune -f
