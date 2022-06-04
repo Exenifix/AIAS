@@ -12,7 +12,12 @@ from exencolorlogs import Logger
 
 from ai.train import train as train_ai
 from utils import embeds
-from utils.constants import EMOJIS, LOG_CHANNEL_ID, TRAIN_GUILD_IDS
+from utils.constants import (
+    EMOJIS,
+    LOG_CHANNEL_ID,
+    TRAIN_GUILD_IDS,
+    WARNINGS_RESET_INTERVAL,
+)
 from utils.datamodels import Database
 from utils.views import AntispamView, ReportedNotSpamView, UnbanView, UntimeoutView
 
@@ -136,7 +141,7 @@ class WarningsManager:
 
         self.warnings_reseter.start()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=WARNINGS_RESET_INTERVAL)
     async def warnings_reseter(self):
         for guild_id in self._warnings:
             for member_id in self._warnings[guild_id]:
