@@ -38,7 +38,7 @@ class Miscellaneous(commands.Cog):
             )
             .add_field(
                 "AI Stats",
-                f"**MODEL SIZE:** `{os.path.getsize('ai/models/model.ai') // 1024}`\n\
+                f"**MODEL SIZE:** `{os.path.getsize('ai/models/model.ai') // 1024}kb`\n\
 **RECORDS:** `{total_records}` total, `{validated_records}` validated.",
                 inline=False,
             )
