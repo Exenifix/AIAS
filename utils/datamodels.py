@@ -114,7 +114,7 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         )
         if record is None:
             return None
-        return record["content"]
+        return record["content"][:1000]
 
     async def update_sample(self, content: str, is_spam: bool):
         analysis_data = analyse_sample(content)
