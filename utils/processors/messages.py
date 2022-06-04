@@ -79,6 +79,7 @@ This member will be muted in **{warnings} warnings.**",
             await log.log_queue_deletion(message.author, message.channel, queue)
             await message.channel.delete_messages(queue)
             queue.clear()
+            await self.bot.db.register_message(full_content)
             return True
 
         return False
@@ -118,6 +119,7 @@ This member will be muted in **{warnings} warnings.**",
                 )
             log = await guild_data.get_logger(self.bot)
             await log.log_antispam(message.author, message.channel, message.content)
+            await self.bot.db.register_message(message.content)
             return True
         else:
             return await self.queue_processor.process(message)
