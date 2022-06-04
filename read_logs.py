@@ -5,7 +5,7 @@ proc = subprocess.Popen(
     ["docker", "logs", "-f", "aias"], stderr=subprocess.PIPE, text=True
 )
 for line in iter(proc.stderr.readline, ""):
-    print(line, end="")
+    print(line, end="", file=sys.stderr)
     if "bot is ready!" in line.lower():
         proc.kill()
         sys.exit(0)
