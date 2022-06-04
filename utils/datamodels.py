@@ -117,6 +117,9 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         return record["content"][:1000]
 
     async def update_sample(self, content: str, is_spam: bool):
+        await self.execute(
+            "UPDATE data SET is_spam = $1 WHERE content = $2", is_spam, content
+        )
         analysis_data = analyse_sample(content)
         exists: bool = await self.execute(
             "SELECT EXISTS(SELECT 1 FROM data WHERE total_chars = $1 AND unique_chars = $2 AND total_words = $3 AND unique_words = $4)",
