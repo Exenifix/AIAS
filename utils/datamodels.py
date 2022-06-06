@@ -144,7 +144,7 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         )
 
     async def get_stats(self) -> str:
-        data = await self.execute("SELECT * FROM stats", fetch_mode=FetchMode.ALL)
+        data = await self.execute("SELECT * FROM stats ORDER BY id", fetch_mode=FetchMode.ALL)
         text = ""
         for record in data:
             text += f"\n**{Stat(record['id']).name.replace('_', ' ').title()}:** `{record['applied_totally']}` total, `{record['applied_daily']}` daily"
