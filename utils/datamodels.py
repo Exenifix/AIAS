@@ -114,7 +114,7 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         )
         if record is None:
             return None
-        return record["content"][:1000]
+        return record["content"]
 
     async def update_sample(self, content: str, is_spam: bool):
         await self.execute(
@@ -144,7 +144,9 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         )
 
     async def get_stats(self) -> str:
-        data = await self.execute("SELECT * FROM stats ORDER BY id", fetch_mode=FetchMode.ALL)
+        data = await self.execute(
+            "SELECT * FROM stats ORDER BY id", fetch_mode=FetchMode.ALL
+        )
         text = ""
         for record in data:
             text += f"\n**{Stat(record['id']).name.replace('_', ' ').title()}:** `{record['applied_totally']}` total, `{record['applied_daily']}` daily"

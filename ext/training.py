@@ -35,7 +35,7 @@ class Training(commands.Cog):
                 view = PhraseProcessingView(inter.author.id)
                 await inter.send(
                     embed=disnake.Embed(
-                        title="Is this message a spam?", description=f"{content}"
+                        title="Is this message a spam?", description=f"{content[:1000]}"
                     ).add_field(
                         "AI Prediction",
                         "YES" if is_spam(content) else "NO",
