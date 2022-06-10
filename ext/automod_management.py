@@ -598,10 +598,11 @@ class Automation(commands.Cog):
     async def delete_and_warn(
         self, inter: disnake.MessageCommandInteraction, message: disnake.Message
     ):
+        await inter.response.defer(ephemeral=True)
         await message.delete()
         warnings = await self.bot.warnings.add_warning(message)
         if warnings != -1:
-            await inter.send(
+            await inter.channel.send(
                 embed=WarningEmbed(
                     message,
                     title="Message Blocked",
@@ -611,6 +612,21 @@ This member will be muted in **{warnings} warnings.**",
             )
         else:
             await inter.send(f"Member was muted", ephemeral=True)
+
+        view = BaseView(
+            inter.author.id,
+            [Button(True, label="yes", style=disnake.ButtonStyle.green)],
+        )
+        await inter.send("Was this message a spam message?", view=view)
+        res, inter = await view.get_result()
+        if res:
+            await inter.send(
+                "Okay, we sent the message to our database for further review. Thanks for helping us improve!",
+                ephemeral=True,
+            )
+            await self.bot.db.register_message(message.content)
+        else:
+            await inter.send("Thanks for feedback!", ephemeral=True)
 
 
 class AutotimeoutManagement(commands.Cog):
