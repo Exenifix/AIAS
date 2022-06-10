@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Sequence
 
 import disnake
@@ -7,10 +9,19 @@ from utils.embeds import BaseEmbed
 from utils.enums import ActionType
 from utils.views import AntispamView, UnbanView, UntimeoutView
 
+cooldowns: dict[int, "LogEntry"] = {}
+
+
+@dataclass
+class LogEntry:
+    action: ActionType
+    target: disnake.Member
+    time: datetime
+
 
 class GuildLogger:
     guild: disnake.Guild
-    log_channel: disnake.TextChannel
+    log_channel: disnake.TextChannel | None
     log: Logger
 
     async def load(self, bot, guild_id: int):
@@ -39,6 +50,14 @@ class GuildLogger:
         if self.log_channel is None:
             return
 
+        last_log_entry = cooldowns.get(target.guild.id, None)
+        if last_log_entry is not None and (
+            (last_log_entry.target == target and last_log_entry.action == action)
+            or (datetime.now() - last_log_entry.time).seconds < 3
+        ):
+            return
+        cooldowns[target.guild.id] = LogEntry(action, target, datetime.now())
+
         if blocked_content is not None and len(blocked_content) > 600:
             blocked_content = blocked_content[:600] + "..."
 
@@ -59,13 +78,9 @@ class GuildLogger:
                 embed.description = f"{len(deleted_messages)} messages were deleted from {channel.mention}."
                 text = ""
                 for msg in deleted_messages:
-                    content = (
-                        (msg.content[:20] + "...")
-                        if len(msg.content) > 20
-                        else msg.content
-                    )
+                    content = msg.content[:200]
                     text += f"[**{msg.author}**]: {content}\n"
-                if len(text) < 0:
+                if len(text) == 0:
                     return
                 embed.add_field("Deleted Messages", text, inline=False)
 

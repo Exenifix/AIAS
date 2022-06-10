@@ -128,7 +128,7 @@ This member will be muted in **{warnings} warnings.**",
 class BlacklistQueueProcessor(MessageQueueProcessor):
     async def process(self, message: disnake.Message) -> bool:
         queue = self.add(message)
-        if queue == False:
+        if queue is False:
             return False
 
         full_content = " ".join([m.content for m in queue])
