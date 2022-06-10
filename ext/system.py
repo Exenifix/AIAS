@@ -207,6 +207,18 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
                 f"Query was executed successfully with return: ```py\n{text}```"
             )
 
+    @commands.slash_command(
+        name="modifymodel",
+        description="Change the is_spam value for the given sample.",
+        guild_ids=TRAIN_GUILD_IDS,
+    )
+    @commands.is_owner()
+    async def modifymodel(
+        self, inter: disnake.ApplicationCommandInteraction, sample: str, is_spam: bool
+    ):
+        await self.bot.db.update_sample(sample, is_spam)
+        await inter.send("Successfully updated this sample!", ephemeral=True)
+
 
 def setup(bot: Bot):
     bot.auto_setup(__name__)
