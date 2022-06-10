@@ -45,14 +45,17 @@ class Queue(Generic[T]):
     def clear(self) -> None:
         self._data.clear()
 
-    def copy(self) -> "Queue[T]":
-        return self._data.copy()
-
     def popleft(self) -> T:
         return self._data.popleft()
 
     def popright(self) -> T:
         return self._data.pop()
+
+    def getleft(self) -> T:
+        return self._data[0]
+
+    def getright(self) -> T:
+        return self._data[-1]
 
 
 async def try_send(member: Member, content: Optional[str] = None, **kwargs):
