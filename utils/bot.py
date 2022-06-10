@@ -10,6 +10,7 @@ from disnake.ext import commands, tasks
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
+from ai import predictor
 from ai.train import train as train_ai
 from utils import embeds
 from utils.constants import (
@@ -55,6 +56,9 @@ class Bot(commands.Bot):
             self.log.info("Training AI model...")
             await train_ai(self.db)
 
+        self.log.info("Loading model...")
+        predictor.load_model()
+        self.log.ok("Model loaded")
         self.log.info("Loading extensions...")
         self.load_extensions("./ext")
 

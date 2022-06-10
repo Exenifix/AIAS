@@ -9,6 +9,9 @@ import disnake
 from disnake.ext import commands, tasks
 from dotenv import load_dotenv
 
+from ai import predictor
+from ai.train import train as train_ai
+
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
@@ -218,6 +221,16 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
     ):
         await self.bot.db.update_sample(sample, is_spam)
         await inter.send("Successfully updated this sample!", ephemeral=True)
+
+    @commands.slash_command(
+        name="retrain", description="Retrains the model", guild_ids=TRAIN_GUILD_IDS
+    )
+    @commands.is_owner()
+    async def retrain(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.defer()
+        predictor.load_model()
+        await train_ai(self.bot.db)
+        await inter.send("Model was retrained successfully!")
 
 
 def setup(bot: Bot):

@@ -5,8 +5,13 @@ from sklearn.ensemble import RandomForestClassifier
 
 from ai.analyser import analyse_sample
 
-with open("ai/models/model.ai", "rb") as f:
-    model: RandomForestClassifier = load(f)
+model: RandomForestClassifier
+
+
+def load_model():
+    global model
+    with open("ai/models/model.ai", "rb") as f:
+        model = load(f)
 
 
 def is_spam(sample: str) -> bool:
