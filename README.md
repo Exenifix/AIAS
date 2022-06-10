@@ -57,7 +57,7 @@ Antiraid makes sure huge amount of members doesn't join just at once. **This fea
 
 ## Character Whitelisting
 
-Tired of members using fonts to avoid the word filter? With AIAS you can **allow only certain symbols** and highly lower
+Tired of members using fonts to avoid the word filter? With AIAS, you can **allow only certain symbols** and highly lower
 the chance of bypass!
 
 ### Quick Setup

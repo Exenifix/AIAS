@@ -1,6 +1,7 @@
 from collections import deque
 from typing import Generic, Iterator, Optional, Sequence, TypeVar
 
+import disnake
 from disnake import Member
 
 T = TypeVar("T")
@@ -57,7 +58,7 @@ class Queue(Generic[T]):
 async def try_send(member: Member, content: Optional[str] = None, **kwargs):
     try:
         await member.send(content, **kwargs)
-    except:
+    except disnake.HTTPException:
         pass
 
 

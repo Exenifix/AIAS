@@ -130,11 +130,11 @@ def get_error_message(
         retry_after = int(getattr(error, "retry_after", 0))
         try:
             missing_perms = ", ".join([str(perm) for perm in error.missing_permissions])
-        except:
+        except AttributeError:
             missing_perms = None
         try:
             missing_roles = ", ".join([str(role) for role in error.missing_roles])
-        except:
+        except AttributeError:
             missing_roles = None
 
         return response.format(

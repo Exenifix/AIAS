@@ -70,7 +70,6 @@ class Rules(commands.Cog):
         for k, v in rules.items():
             text += f"{k}: {v}\n"
 
-        texts = []
         if len(text) > 1024:
             texts = split_text(text, 1024)
         else:

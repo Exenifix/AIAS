@@ -17,7 +17,7 @@ class AntiraidProcessor:
         self.data = {}
 
     def add(self, member: disnake.Member, limit: int):
-        if not member.guild.id in self.data:
+        if member.guild.id not in self.data:
             queue = Queue([member], limit)
             self.data[member.guild.id] = queue
             return False
@@ -43,7 +43,7 @@ class AntiraidProcessor:
             return 0
 
         queue = self.add(member, antiraid.members_limit)
-        if queue == False:
+        if queue is False:
             return 0
 
         if (
@@ -86,7 +86,8 @@ If it was a mistake, staff members will unban you.",
                             embed=WarningEmbed(
                                 member,
                                 title="AntiRaid",
-                                description=f"You were timeouted in {member.guild.name} for `{duration}` minutes because of suspect of raid. \
+                                description=f"You were timeouted in {member.guild.name} for `{duration}` minutes \
+because of suspect of raid. \n\
 If it was a mistake, staff members will untimeout you.",
                             ),
                         )

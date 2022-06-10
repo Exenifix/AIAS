@@ -157,10 +157,10 @@ class WarningsManager:
         await self.bot.wait_until_ready()
 
     def get_warnings(self, author: disnake.Member):
-        if not author.guild.id in self._warnings:
+        if author.guild.id not in self._warnings:
             self._warnings[author.guild.id] = {author.id: 0}
             return 0
-        elif not author.id in self._warnings[author.guild.id]:
+        elif author.id not in self._warnings[author.guild.id]:
             self._warnings[author.guild.id][author.id] = 0
             return 0
         else:

@@ -20,12 +20,12 @@ class MessageQueueProcessor:
         self.bot = bot
 
     def add(self, message: disnake.Message) -> Queue[disnake.Message] | Literal[False]:
-        if not message.guild.id in self.data:
+        if message.guild.id not in self.data:
             self.data[message.guild.id] = {
                 message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
             }
             return False
-        elif not message.author.id in self.data[message.guild.id]:
+        elif message.author.id not in self.data[message.guild.id]:
             self.data[message.guild.id][message.author.id] = Queue(
                 [message], max_size=MAX_SPAM_QUEUE_SIZE
             )
