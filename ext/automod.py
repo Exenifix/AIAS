@@ -44,6 +44,7 @@ class Automod(commands.Cog):
             return
 
         await self._process_message(message)
+        await self.bot.db.register_stat_increase(Stat.MESSAGES_PROCESSED)
 
     @commands.Cog.listener()
     async def on_member_update(self, before: disnake.Member, after: disnake.Member):

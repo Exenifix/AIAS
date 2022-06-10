@@ -83,6 +83,13 @@ class Database:
 
         await update_db(self)
 
+        # inserting Stat enums
+        res = await self.execute("SELECT id FROM stats", fetch_mode=FetchMode.ROW)
+        existing_stats: list[int] = [r["id"] for r in res]
+        for enum in Stat:
+            if enum.value not in existing_stats:
+                await self.execute("INSERT INTO stats (id) VALUES ($1)", enum.value)
+
     def get_guild(self, id: int) -> "GuildData":
         return GuildData(self, id)
 
