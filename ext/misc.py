@@ -6,7 +6,7 @@ import psutil
 from disnake.ext import commands
 
 from utils.bot import Bot
-from utils.embeds import BaseEmbed
+from utils.embeds import BaseEmbed, SuccessEmbed
 from utils.enums import FetchMode
 
 
@@ -45,6 +45,23 @@ class Miscellaneous(commands.Cog):
         )
 
         await inter.send(embed=embed)
+
+    @commands.message_command(name="Purge All Below")
+    @commands.has_permissions(manage_messages=True)
+    async def purge_all_below(
+        self, inter: disnake.MessageCommandInteraction, message: disnake.Message
+    ):
+        await inter.response.defer()
+        messages = await inter.channel.purge(
+            after=message.created_at, check=lambda m: not m.pinned
+        )
+        await inter.send(
+            embed=SuccessEmbed(
+                inter,
+                f"Successfully purged **{len(messages)} messages** here!",
+                disable_bold=True,
+            )
+        )
 
 
 def setup(bot: Bot):
