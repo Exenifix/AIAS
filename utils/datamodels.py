@@ -89,7 +89,10 @@ class Database:
         )
         for enum in Stat:
             if enum.value not in existing_stats:
-                await self.execute("INSERT INTO stats (id) VALUES ($1) ON CONFLICT DO NOTHING", enum.value)
+                await self.execute(
+                    "INSERT INTO stats (id) VALUES ($1) ON CONFLICT DO NOTHING",
+                    enum.value,
+                )
 
     def get_guild(self, id: int) -> "GuildData":
         return GuildData(self, id)

@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 
 from ai import predictor
 from ai.train import train as train_ai
-
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
@@ -55,6 +54,39 @@ class SystemListeners(commands.Cog):
                 f"**Name:** `{guild.name}`\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
             )
         )
+
+        # attempt to find general and send a message to there
+        embed = disnake.Embed(
+            color=0x00FF00,
+            title=f":wave: Thanks for Inviting AIAS!",
+            description="""Please complete bot setup as described [here](https://github.com/Exenifix/AIAS/blob/master/README.md). \
+Notice that **antispam is already enabled.**\n
+Our bot uses AI to detect spam and may mistake sometimes, although it is trained on > 10k samples. \
+If it blocks the message that is not spam, please lead to log channel (if you have setup it) and press **Not Spam** button. \
+If bot didn't block spam message, use message command **Delete and Warn**. This will submit a sample to us for further review.\n
+Once again, thanks for inviting AIAS! We hope it will help you improve moderation in your server!""",
+        )
+        channels_priority = ["general", "chat"]
+        for name in channels_priority:
+            for channel in guild.text_channels:
+                if (
+                    name in channel.name
+                    and channel.permissions_for(channel.guild.me).send_messages
+                ):
+                    try:
+                        await channel.send(embed=embed)
+                        return
+                    except disnake.HTTPException:
+                        pass
+
+        # in case the channel with expected name wasn't found, send the message to the first available
+        for channel in guild.text_channels:
+            if channel.permissions_for(channel.guild.me).send_messages:
+                try:
+                    await channel.send(embed=embed)
+                    return
+                except disnake.HTTPException:
+                    continue
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):
