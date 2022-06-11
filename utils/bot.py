@@ -1,4 +1,5 @@
 import inspect
+import os
 import sys
 import traceback
 from datetime import datetime, timedelta
@@ -26,25 +27,26 @@ REQUIRED_FOLDERS = ("logs",)
 
 
 class Bot(commands.Bot):
-    def __init__(self, *, test_version: bool = False):
+    log_channel: disnake.TextChannel
+
+    def __init__(self):
         intents = disnake.Intents.all()
         intents.presences = False
         self.log = Logger("BOT")
-        kwrg = {}
-        self.test_version = test_version
-        if test_version:
+        test_guilds = None
+        self.test_version = bool(os.getenv("TEST_VERSION", 0))
+        if self.test_version:
             self.log.warning("Running on TEST VERSION")
-            kwrg = {"test_guilds": TRAIN_GUILD_IDS}
+            test_guilds = TRAIN_GUILD_IDS
         super().__init__(
             intents=intents,
             allowed_mentions=disnake.AllowedMentions(
                 everyone=False, users=True, roles=False, replied_user=True
             ),
-            **kwrg,
+            test_guilds=test_guilds,
         )
         self.db: Database = Database()
         self.sys_emojis: embeds.Emojis = embeds.Emojis()
-        self.log_channel: disnake.TextChannel = None
         self.warnings: WarningsManager = WarningsManager(self)
 
     async def start(self, *args, **kwargs):
