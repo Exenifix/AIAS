@@ -26,7 +26,7 @@ jobs:
           pip install -U exendlr
 
       - name: Run Container
-        run: docker-compose up -d
+        run: docker-compose up -d --build
 
       - name: Display Bot Logs
         timeout-minutes: 5
