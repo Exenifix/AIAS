@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  main:
+    build: .
+    container_name: aias
+    network_mode: host
+    volumes:
+      - /home/exenifix/aias/logs:/app/logs
+      - /home/exenifix/aias/models:/app/ai/models
+    environment:
+      - TOKEN
+      - DATABASE
+      - HOST
+      - USER
+      - PASSWORD
+      - TOPGG_TOKEN
