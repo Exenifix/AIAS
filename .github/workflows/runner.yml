@@ -20,11 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Update ExenDLR
-        run: |
-          pip install -U pip
-          pip install -U exendlr
-
       - name: Run Container
         run: docker-compose up -d --build
 

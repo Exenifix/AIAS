@@ -1,15 +1,11 @@
 FROM python:3.10-bullseye
 
-ENV VIRTUAL_ENV=/app/venv
-RUN pip3 install -U pip virtualenv
-RUN python -m virtualenv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
+RUN pip install poetry
+COPY pyproject.toml poetry.lock /app/
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN poetry install
 
 COPY . .
 
-ENTRYPOINT ["python"]
+ENTRYPOINT ["poetry", "run", "python"]
 CMD ["main.py"]
