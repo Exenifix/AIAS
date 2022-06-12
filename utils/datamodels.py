@@ -5,14 +5,20 @@ from os import getenv
 from typing import Any, Optional
 
 import asyncpg
+import disnake
 from dotenv import load_dotenv
 from exencolorlogs import Logger
 
 from ai.analyser import analyse_sample
 from utils import autocomplete, errors
+from utils.constants import MAX_AUTOSLOWMODE_CHANNELS_AMOUNT
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
 from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
+from utils.errors import (
+    AutoslowmodeChannelsLimitReached,
+    AutoslowmodeChannelAlreadyExists,
+)
 from utils.filters.blacklist import preformat
 
 load_dotenv()
@@ -175,6 +181,55 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
 
     async def update_daily_reset(self):
         await self.execute("UPDATE resets SET value = CURRENT_TIMESTAMP WHERE id = 0")
+
+    async def add_autoslowmode_channel(self, channel: disnake.TextChannel):
+        amount: int = await self.execute(
+            "SELECT COUNT(*) FROM autoslowmode WHERE guild_id = $1",
+            channel.guild.id,
+            fetch_mode=FetchMode.VAL,
+        )
+        if amount >= MAX_AUTOSLOWMODE_CHANNELS_AMOUNT:
+            raise AutoslowmodeChannelsLimitReached()
+
+        try:
+            await self.execute(
+                "INSERT INTO autoslowmode (id, guild_id) VALUES ($1, $2)",
+                channel.id,
+                channel.guild.id,
+            )
+        except asyncpg.UniqueViolationError:
+            raise AutoslowmodeChannelAlreadyExists(channel.id)
+
+    async def remove_autoslowmode_channel(self, channel_id: int):
+        await self.execute("DELETE FROM autoslowmode WHERE id = $1", channel_id)
+
+    async def is_channel_autoslowmode(self, channel: disnake.TextChannel):
+        return bool(
+            await self.execute(
+                "SELECT EXISTS(SELECT 1 FROM autoslowmode WHERE id = $1)",
+                channel.id,
+                fetch_mode=FetchMode.VAL,
+            )
+        )
+
+    async def get_autoslowmode_channels(self) -> list[int]:
+        return [
+            r["id"]
+            for r in await self.execute(
+                "SELECT id FROM autoslowmode",
+                fetch_mode=FetchMode.ALL,
+            )
+        ]
+
+    async def get_autoslowmode_channels_for_guild(self, guild_id: int) -> list[int]:
+        return [
+            r["id"]
+            for r in await self.execute(
+                "SELECT id FROM autoslowmode WHERE guild_id = $1",
+                guild_id,
+                fetch_mode=FetchMode.ALL,
+            )
+        ]
 
 
 class SubData:

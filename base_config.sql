@@ -74,3 +74,9 @@ CREATE TABLE IF NOT EXISTS resets
     id    INT UNIQUE NOT NULL, -- 0 is daily
     value TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS autoslowmode
+(
+    id BIGINT PRIMARY KEY,
+    guild_id BIGINT NOT NULL
+);

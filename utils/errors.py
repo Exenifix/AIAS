@@ -4,6 +4,8 @@ import sys
 from disnake import Forbidden, Interaction
 from disnake.ext import commands
 
+from utils.constants import MAX_AUTOSLOWMODE_CHANNELS_AMOUNT
+
 UNKNOWN = object()
 
 
@@ -51,6 +53,19 @@ class AlreadyManager(DatabaseException):
 class NotManager(DatabaseException):
     def __init__(self, id: int):
         super().__init__(f"An object with ID {id} is not a manager.")
+
+
+class AutoslowmodeChannelsLimitReached(DatabaseException):
+    def __init__(self):
+        super().__init__(
+            f"There can be maximum of **{MAX_AUTOSLOWMODE_CHANNELS_AMOUNT}** \
+autoslowmode channels per server."
+        )
+
+
+class AutoslowmodeChannelAlreadyExists(DatabaseException):
+    def __init__(self, channel_id: int):
+        super().__init__(f"Channel <#{channel_id}> is already autoslowmode channel.")
 
 
 class ManagerOnly(CustomError):
