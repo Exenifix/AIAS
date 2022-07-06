@@ -124,7 +124,7 @@ class Bot(commands.Bot):
             self.owner.mention,
             embed=disnake.Embed(
                 colour=0xFF0000,
-                title=f"{self.sys_emojis.exclamation} Unexpected error occured",
+                title=f"{self.sys_emojis.exclamation} Unexpected error occurred",
             ).add_field("Traceback (most recent call last):", tb[-1000:], inline=False),
             file=disnake.File(path),
         )

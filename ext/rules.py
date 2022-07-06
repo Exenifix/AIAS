@@ -62,7 +62,7 @@ class Rules(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def listrules(self, inter: disnake.ApplicationCommandInteraction):
         rules = await self.bot.db.get_guild(inter.guild.id).get_all_rules()
-        if rules is None:
+        if rules is None or len(rules) == 0:
             await inter.send(f"There are no rules.", ephemeral=True)
 
         rules = sorted_dict(rules)
