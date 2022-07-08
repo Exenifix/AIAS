@@ -12,7 +12,7 @@ python-dotenv = "^0.20.0"
 scikit-learn = "^1.1.1"
 exencolorlogs = "^0.4"
 psutil = "^5.9.1"
-asyncpg = "^0.25.0"
+asyncpg = "^0.26.0"
 
 [tool.poetry.dev-dependencies]
 
