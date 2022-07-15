@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS guilds
     antiraid_members_limit   INT      DEFAULT 5,
     antiraid_punishment      INT      DEFAULT 1, -- decodification in utils.enums.AntiraidPunishment
 
+    linkfilter_enabled       BOOLEAN  DEFAULT TRUE,
+
     log_channel              BIGINT,
 
     automod_managers         BIGINT[] DEFAULT ARRAY []::BIGINT[]
@@ -51,7 +53,7 @@ CREATE TABLE IF NOT EXISTS version_data
 );
 
 INSERT INTO version_data (id, version)
-VALUES (0, 9)
+VALUES (0, 10)
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules
@@ -77,6 +79,12 @@ CREATE TABLE IF NOT EXISTS resets
 
 CREATE TABLE IF NOT EXISTS autoslowmode
 (
-    id BIGINT PRIMARY KEY,
+    id       BIGINT PRIMARY KEY,
     guild_id BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS links
+(
+    url     TEXT UNIQUE NOT NULL,
+    is_safe BOOLEAN     NOT NULL
 );

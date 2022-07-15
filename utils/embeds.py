@@ -12,6 +12,7 @@ class Emojis:
     checkmark: disnake.Emoji
     exclamation: disnake.Emoji
     warning: disnake.Emoji
+    load: disnake.Emoji
 
 
 emojis = Emojis()

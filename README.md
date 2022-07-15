@@ -30,7 +30,8 @@ bypass symbols, apply antialias and even **search curse words between messages!*
 ### Quick Setup
 
 1. Enable the system with `/blacklist enable`
-2. Load the default words list with `blacklist template` OR skip this step if you want to set up entirely custom bad words list
+2. Load the default words list with `blacklist template` OR skip this step if you want to set up entirely custom bad
+   words list
 3. Add/remove words with `/blacklist add` and `/blacklist remove`
 4. Set the ignored channels and roles with `/blacklist ignore` command group
 
@@ -57,7 +58,8 @@ Antiraid makes sure huge amount of members doesn't join just at once. **This fea
 
 ## Character Whitelisting
 
-Tired of members using fonts to avoid the word filter? With AIAS, you can **allow only certain symbols** and highly lower
+Tired of members using fonts to avoid the word filter? With AIAS, you can **allow only certain symbols** and highly
+lower
 the chance of bypass!
 
 ### Quick Setup
@@ -67,9 +69,12 @@ the chance of bypass!
 3. Set the ignored characters and roles with `/whitelist ignore` command group
 
 ## Autoslowmode
-Autoslowmode helps to control the message flow in your channels by editing channel's slowmode based on amount of messages sent per certain interval! **Maximum 10 channels per server**
+
+Autoslowmode helps to control the message flow in your channels by editing channel's slowmode based on amount of
+messages sent per certain interval! **Maximum 10 channels per server**
 
 ### Commands
+
 There are only 2 commands: `/autoslowmode addchannel` to add a channel and `/autoslowmode removechannel`.
 
 ## NickFilter

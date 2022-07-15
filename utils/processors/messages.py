@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 
 import disnake
@@ -9,6 +10,13 @@ from utils.embeds import WarningEmbed
 from utils.filters.blacklist import is_blacklisted
 from utils.filters.whitelist import contains_fonts
 from utils.utils import Queue
+
+LINK_REGEX = re.compile(
+    r"""(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z\d%])|www\d{0,3}[.]|
+[a-z\d.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()
+<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{}
+;:'".,<>?«»“”‘’]))"""
+)
 
 
 class MessageQueueProcessor:
@@ -185,7 +193,8 @@ class BlacklistProcessor:
                 embed = WarningEmbed(
                     message,
                     title="Blacklisted Expression Blocked",
-                    description=f"A message sent by {message.author.mention} was deleted for containing blacklisted expressions.\n\
+                    description=f"A message sent by {message.author.mention} was deleted for \
+containing blacklisted expressions.\n\
 This member will be muted in **{warnings} warnings.**",
                 )
                 if expr is not None:
@@ -196,10 +205,10 @@ This member will be muted in **{warnings} warnings.**",
                     embed=embed,
                     delete_after=5,
                 )
-                log = await guild.get_logger(self.bot)
-                await log.log_single_deletion(
-                    message.author, message.channel, message.content
-                )
+            log = await guild.get_logger(self.bot)
+            await log.log_single_deletion(
+                message.author, message.channel, message.content
+            )
             return True
         else:
             return await self.queue_processor.process(message)
@@ -241,5 +250,55 @@ Blocked symbols: `{'`, `'.join(chars)}`.",
                 message.author, message.channel, message.content
             )
             return True
+
+        return False
+
+
+class LinksProcessor:
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    async def process(self, message: disnake.Message) -> bool:
+        if not await self.bot.db.get_guild(message.guild.id).get_linkfilter_enabled():
+            return False
+
+        raw_links = re.findall(LINK_REGEX, message.content)
+        if len(raw_links) == 0:
+            return False
+
+        try:
+            await message.add_reaction(self.bot.sys_emojis.load)
+        except disnake.HTTPException:
+            pass
+
+        links = []
+        for t in raw_links:
+            for link in t:
+                if len(link) > 0:
+                    links.append(link)
+
+        for link in links:
+            if not await self.bot.db.is_link_safe(link):
+                await message.delete()
+                warnings = await self.bot.warnings.add_warning(message)
+                if warnings != -1:
+                    await message.channel.send(
+                        embed=WarningEmbed(
+                            message,
+                            title="Malicious Link",
+                            description=f"A message sent by {message.author.mention} \
+was deleted because it contained a malicious link. This member will be muted in **{warnings}** warnings.",
+                        )
+                    )
+                log = await self.bot.db.get_guild(message.guild.id).get_logger(self.bot)
+                await log.log_single_deletion(
+                    message.author, message.channel, message.content
+                )
+                return True
+        try:
+            await message.remove_reaction(self.bot.sys_emojis.load, self.bot.user)
+            await message.add_reaction(self.bot.sys_emojis.checkmark)
+        except disnake.HTTPException:
+            pass
 
         return False

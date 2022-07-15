@@ -736,5 +736,27 @@ class AntiraidManagement(commands.Cog):
         )
 
 
+class LinkfilterManagement(commands.Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
+    async def cog_slash_command_check(
+        self, inter: disnake.ApplicationCommandInteraction
+    ) -> bool:
+        return await is_automod_manager(self.bot, inter)
+
+    @commands.slash_command(name="linkfilter")
+    async def linkfilter(self, _):
+        pass
+
+    @linkfilter.sub_command(name="enable", description="Enables linkfilter.")
+    async def linkfilter_enable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_linkfilter_enabled(True)
+
+    @linkfilter.sub_command(name="disable", description="Disables linkfilter.")
+    async def linkfilter_disable(self, inter: disnake.ApplicationCommandInteraction):
+        await self.bot.db.get_guild(inter.guild.id).set_linkfilter_enabled(False)
+
+
 def setup(bot: Bot):
     bot.auto_setup(__name__)

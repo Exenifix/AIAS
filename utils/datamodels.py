@@ -16,10 +16,11 @@ from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
 from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
 from utils.errors import (
-    AutoslowmodeChannelsLimitReached,
     AutoslowmodeChannelAlreadyExists,
+    AutoslowmodeChannelsLimitReached,
 )
 from utils.filters.blacklist import preformat
+from utils.filters.links import is_url_safe
 
 load_dotenv()
 
@@ -230,6 +231,20 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
                 fetch_mode=FetchMode.ALL,
             )
         ]
+
+    async def is_link_safe(self, url: str):
+        url = url if not url.endswith("/") else url[:-1]
+        is_safe = await self.execute(
+            "SELECT is_safe FROM links WHERE url = $1", url, fetch_mode=FetchMode.VAL
+        )
+        if is_safe is not None:
+            return is_safe
+
+        is_safe = await is_url_safe(url)
+        await self.execute(
+            "INSERT INTO links (url, is_safe) VALUES ($1, $2)", url, is_safe
+        )
+        return is_safe
 
 
 class SubData:
@@ -584,3 +599,9 @@ class GuildData:
 
     async def set_antiraid_punishment(self, value: int):
         await self._update(antiraid_punishment=value)
+
+    async def set_linkfilter_enabled(self, value: bool):
+        await self._update(linkfilter_enabled=value)
+
+    async def get_linkfilter_enabled(self) -> bool:
+        return await self._select("linkfilter_enabled", fetch_mode=FetchMode.VAL)

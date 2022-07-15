@@ -1,6 +1,7 @@
 import inspect
 import sys
 
+import termcolor
 from disnake import Forbidden, Interaction
 from disnake.ext import commands
 
@@ -92,8 +93,19 @@ class RuleNotFound(DatabaseException):
         super().__init__(f"A rule with key {rule_key} doesn't exist.")
 
 
+class LinkCheckFailure(CustomError):
+    def __init__(self, url: str, error_code: int, error: str):
+        super().__init__(
+            f"Failed to scan url {termcolor.colored(url, 'yellow')}. \
+Error: {termcolor.colored(str(error_code), 'red')} {error}"
+        )
+
+
 known_exceptions = [
-    i[1] for i in inspect.getmembers(sys.modules[__name__], inspect.isclass)
+    i[1]
+    for i in inspect.getmembers(
+        sys.modules[__name__], lambda x: inspect.isclass(x) and issubclass(x, Exception)
+    )
 ]
 
 known_exceptions.extend(
