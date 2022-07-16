@@ -17,6 +17,7 @@ log = Logger("IPQS")
 
 async def is_url_safe(url: str) -> bool:
     async with aiohttp.ClientSession("https://ipqualityscore.com") as session:
+        log.debug("Checking %s URL (encoded %s)", url, urllib.parse.quote(url, ""))
         r = await session.get(f"/api/json/url/{APIKEY}/{urllib.parse.quote(url, '')}")
         if r.status != 200:
             try:
