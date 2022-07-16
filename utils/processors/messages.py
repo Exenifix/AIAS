@@ -12,10 +12,7 @@ from utils.filters.whitelist import contains_fonts
 from utils.utils import Queue
 
 LINK_REGEX = re.compile(
-    r"""(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z\d%])|www\d{0,3}[.]|
-[a-z\d.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()
-<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{}
-;:'".,<>?«»“”‘’]))"""
+    r"https?://(?:www\.)?[-a-zA-Z\d@:%._+~#=]{1,256}\.[a-zA-Z\d()]{1,6}\b([-a-zA-Z\d()@:%_+.~#?&/=]*)"
 )
 
 

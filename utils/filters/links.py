@@ -24,6 +24,15 @@ async def is_url_safe(url: str) -> bool:
             except json.JSONDecodeError:
                 log.warning("Failed to decode json")
                 error_text = "No info"
+            except aiohttp.ContentTypeError:
+                log.warning("Failed to decode json")
+                error_text = await r.text()
             raise LinkCheckFailure(url, r.status, error_text)
 
-        return (await r.json())["risk_score"] < 75
+        res = await r.json()
+        try:
+            return res["risk_score"] < 75
+        except KeyError:
+            raise Exception(
+                f"URL response did not contain `risk_score` key. Response: \n{res}"
+            )
