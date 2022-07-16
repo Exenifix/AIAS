@@ -11,7 +11,9 @@ from utils.filters.blacklist import is_blacklisted
 from utils.filters.whitelist import contains_fonts
 from utils.utils import Queue
 
-LINK_REGEX = re.compile(r"https?://[a-zA-Z\d_\-]+\.[a-zA-Z]{2,6}[a-zA-Z\d_\-+/%:?#.~=&]*")
+LINK_REGEX = re.compile(
+    r"https?://[a-zA-Z\d_\-]+\.[a-zA-Z]{2,6}[a-zA-Z\d_\-+/%:?#.~=&]*"
+)
 
 
 class MessageQueueProcessor:
@@ -279,7 +281,8 @@ class LinksProcessor:
                             title="Malicious Link",
                             description=f"A message sent by {message.author.mention} \
 was deleted because it contained a malicious link. This member will be muted in **{warnings}** warnings.",
-                        )
+                        ),
+                        delete_after=5,
                     )
                 log = await self.bot.db.get_guild(message.guild.id).get_logger(self.bot)
                 await log.log_single_deletion(
