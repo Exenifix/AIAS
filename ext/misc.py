@@ -51,7 +51,7 @@ class Miscellaneous(commands.Cog):
     async def purge_all_below(
         self, inter: disnake.MessageCommandInteraction, message: disnake.Message
     ):
-        await inter.response.defer()
+        await inter.response.defer(ephemeral=True)
         messages = await inter.channel.purge(
             after=message.created_at, check=lambda m: not m.pinned
         )
@@ -60,7 +60,7 @@ class Miscellaneous(commands.Cog):
                 inter,
                 f"Successfully purged **{len(messages)} messages** here!",
                 disable_bold=True,
-            )
+            ), ephemeral=True
         )
 
 
