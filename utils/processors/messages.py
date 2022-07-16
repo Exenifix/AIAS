@@ -11,9 +11,7 @@ from utils.filters.blacklist import is_blacklisted
 from utils.filters.whitelist import contains_fonts
 from utils.utils import Queue
 
-LINK_REGEX = re.compile(
-    r"https?://(?:www\.)?[-a-zA-Z\d@:%._+~#=]{1,256}\.[a-zA-Z\d()]{1,6}\b([-a-zA-Z\d()@:%_+.~#?&/=]*)"
-)
+LINK_REGEX = re.compile(r"https?://[a-zA-Z\d_\-]+\.[a-zA-Z]{2,6}[a-zA-Z\d_\-+/%:?#.~=&]*")
 
 
 class MessageQueueProcessor:
