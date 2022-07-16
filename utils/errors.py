@@ -1,7 +1,7 @@
 import inspect
 import sys
 
-import termcolor
+import exencolor
 from disnake import Forbidden, Interaction
 from disnake.ext import commands
 
@@ -96,8 +96,8 @@ class RuleNotFound(DatabaseException):
 class LinkCheckFailure(CustomError):
     def __init__(self, url: str, error_code: int, error: str):
         super().__init__(
-            f"Failed to scan url {termcolor.colored(url, 'yellow')}. \
-Error: {termcolor.colored(str(error_code), 'red')} {error}"
+            f"Failed to scan url {exencolor.colored(url, foreground=exencolor.Color.YELLOW)}. \
+Error: {exencolor.colored(str(error_code), foreground=exencolor.Color.RED)} {error}"
         )
 
 
