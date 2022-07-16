@@ -259,20 +259,14 @@ class LinksProcessor:
         if not await self.bot.db.get_guild(message.guild.id).get_linkfilter_enabled():
             return False
 
-        raw_links = re.findall(LINK_REGEX, message.content)
-        if len(raw_links) == 0:
+        links = re.findall(LINK_REGEX, message.content)
+        if len(links) == 0:
             return False
 
         try:
             await message.add_reaction(self.bot.sys_emojis.load)
         except disnake.HTTPException:
             pass
-
-        links = []
-        for t in raw_links:
-            for link in t:
-                if len(link) > 0:
-                    links.append(link)
 
         for link in links:
             if not await self.bot.db.is_link_safe(link):
