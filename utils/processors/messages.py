@@ -269,6 +269,8 @@ class LinksProcessor:
             pass
 
         for link in links:
+            if not link.startswith("http"):
+                continue
             if not await self.bot.db.is_link_safe(link):
                 await message.delete()
                 warnings = await self.bot.warnings.add_warning(message)
