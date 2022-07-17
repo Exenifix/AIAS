@@ -1,4 +1,3 @@
-import re
 from typing import Literal
 
 import disnake
@@ -10,10 +9,6 @@ from utils.embeds import WarningEmbed
 from utils.filters.blacklist import is_blacklisted
 from utils.filters.whitelist import contains_fonts
 from utils.utils import Queue
-
-LINK_REGEX = re.compile(
-    r"https?://[a-zA-Z\d_\-]+\.[a-zA-Z]{2,6}[a-zA-Z\d_\-+/%:?#.~=&]*"
-)
 
 
 class MessageQueueProcessor:
@@ -247,52 +242,5 @@ Blocked symbols: `{'`, `'.join(chars)}`.",
                 message.author, message.channel, message.content
             )
             return True
-
-        return False
-
-
-class LinksProcessor:
-    def __init__(self, bot: Bot):
-        self.bot = bot
-
-    async def process(self, message: disnake.Message) -> bool:
-        if not await self.bot.db.get_guild(message.guild.id).get_linkfilter_enabled():
-            return False
-
-        links = re.findall(LINK_REGEX, message.content)
-        if len(links) == 0:
-            return False
-
-        try:
-            await message.add_reaction(self.bot.sys_emojis.load)
-        except disnake.HTTPException:
-            pass
-
-        for link in links:
-            if not link.startswith("http"):
-                continue
-            if not await self.bot.db.is_link_safe(link):
-                await message.delete()
-                warnings = await self.bot.warnings.add_warning(message)
-                if warnings != -1:
-                    await message.channel.send(
-                        embed=WarningEmbed(
-                            message,
-                            title="Malicious Link",
-                            description=f"A message sent by {message.author.mention} \
-was deleted because it contained a malicious link. This member will be muted in **{warnings}** warnings.",
-                        ),
-                        delete_after=5,
-                    )
-                log = await self.bot.db.get_guild(message.guild.id).get_logger(self.bot)
-                await log.log_single_deletion(
-                    message.author, message.channel, message.content
-                )
-                return True
-        try:
-            await message.remove_reaction(self.bot.sys_emojis.load, self.bot.user)
-            await message.add_reaction(self.bot.sys_emojis.checkmark)
-        except disnake.HTTPException:
-            pass
 
         return False

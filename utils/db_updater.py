@@ -2,7 +2,7 @@ from ai.analyser import analyse_sample
 
 from utils.enums import FetchMode
 
-version = 10
+version = 9
 
 
 async def update_db(db):
@@ -103,11 +103,6 @@ async def update_db(db):
                     db.log.warning(
                         "Data correction successful, please retrain the model!"
                     )
-
-                case 10:
-                    sqls = [
-                        "ALTER TABLE guilds ADD COLUMN linkfilter_enabled BOOLEAN DEFAULT TRUE"
-                    ]
 
             for sql in sqls:
                 async with db._pool.acquire() as con:

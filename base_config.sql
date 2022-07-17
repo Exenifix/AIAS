@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS version_data
 );
 
 INSERT INTO version_data (id, version)
-VALUES (0, 10)
+VALUES (0, 9)
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules
@@ -81,10 +81,4 @@ CREATE TABLE IF NOT EXISTS autoslowmode
 (
     id       BIGINT PRIMARY KEY,
     guild_id BIGINT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS links
-(
-    url     TEXT UNIQUE NOT NULL,
-    is_safe BOOLEAN     NOT NULL
 );

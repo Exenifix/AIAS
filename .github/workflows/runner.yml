@@ -16,7 +16,6 @@ jobs:
       USER: ${{ secrets.USER }}
       PASSWORD: ${{ secrets.PASSWORD }}
       TOPGG_TOKEN: ${{ secrets.TOPGG_TOKEN }}
-      IPQS_APIKEY: ${{ secrets.IPQS_APIKEY }}
 
     steps:
       - uses: actions/checkout@v3

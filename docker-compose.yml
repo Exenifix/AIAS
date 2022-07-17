@@ -14,4 +14,3 @@ services:
       - USER
       - PASSWORD
       - TOPGG_TOKEN
-      - IPQS_APIKEY

@@ -12,7 +12,6 @@ from utils.processors.antiraid import AntiraidProcessor
 from utils.processors.messages import (
     AntiSpamProcessor,
     BlacklistProcessor,
-    LinksProcessor,
     WhitelistProcessor,
 )
 from utils.utils import try_send
@@ -25,7 +24,6 @@ class Automod(commands.Cog):
         self.blacklist_processor = BlacklistProcessor(bot)
         self.whitelist_processor = WhitelistProcessor(bot)
         self.antiraid_processor = AntiraidProcessor(bot)
-        self.links_processor = LinksProcessor(bot)
         self.permission_warnings: dict[int, datetime] = {}
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
 
@@ -70,9 +68,6 @@ class Automod(commands.Cog):
 
             elif await self.blacklist_processor.process(message):
                 await self.bot.db.register_stat_increase(Stat.BAD_WORDS_BLOCKED)
-
-            elif await self.links_processor.process(message):
-                await self.bot.db.register_stat_increase(Stat.LINKS_BLOCKED)
 
         except disnake.Forbidden:
             if (

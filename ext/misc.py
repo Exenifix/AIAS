@@ -60,7 +60,8 @@ class Miscellaneous(commands.Cog):
                 inter,
                 f"Successfully purged **{len(messages)} messages** here!",
                 disable_bold=True,
-            ), ephemeral=True
+            ),
+            ephemeral=True,
         )
 
 

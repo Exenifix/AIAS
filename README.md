@@ -77,15 +77,6 @@ messages sent per certain interval! **Maximum 10 channels per server**
 
 There are only 2 commands: `/autoslowmode addchannel` to add a channel and `/autoslowmode removechannel`.
 
-## Links Filter
-
-AIAS offers a quick malicious links scanner. No more phishing and scam links on your server!
-
-### Commands
-
-- `/linkfilter enable`
-- `/linkfilter disable`
-
 ## NickFilter
 
 Want to block members from setting inappropriate names? **NickFilter** from AIAS will do that easily! Nicknames
