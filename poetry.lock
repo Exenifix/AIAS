@@ -94,7 +94,7 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [[package]]
 name = "exencolor"
-version = "1.0.2"
+version = "1.1.1"
 description = "A modern module for colored output."
 category = "main"
 optional = false
@@ -102,14 +102,14 @@ python-versions = ">=3.10,<4.0"
 
 [[package]]
 name = "exencolorlogs"
-version = "1.0"
+version = "1.0.1"
 description = "A module for nice looking colored logs."
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 
 [package.dependencies]
-exencolor = ">=1.0.2,<2.0.0"
+exencolor = ">=1.1.1,<2.0.0"
 
 [[package]]
 name = "frozenlist"
@@ -227,7 +227,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "3a53f70ed1f6e101b8d9c168be48747c45c60c33982cb919e6e70c44b172f538"
+content-hash = "513fd683b001a2c62ba9d89a8206bf73c55eb5bcfc84cc1a187c6695335c75d2"
 
 [metadata.files]
 aiohttp = [
@@ -326,7 +326,10 @@ disnake = [
     {file = "disnake-2.5.1.tar.gz", hash = "sha256:3890a6df75db4db8d4a81f0cbcb0051acf3ccbf88dabca3f76f67243c4e42921"},
 ]
 exencolor = []
-exencolorlogs = []
+exencolorlogs = [
+    {file = "exencolorlogs-1.0.1-py3-none-any.whl", hash = "sha256:904256f484c03b8ba2a910d2afefc4333da7921e05357eaef32b157c50f48d6e"},
+    {file = "exencolorlogs-1.0.1.tar.gz", hash = "sha256:2e0be0b303430c757763c96f4095db52a8113416ae4464cbb4942255f3ec953f"},
+]
 frozenlist = [
     {file = "frozenlist-1.3.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d2257aaba9660f78c7b1d8fea963b68f3feffb1a9d5d05a18401ca9eb3e8d0a3"},
     {file = "frozenlist-1.3.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4a44ebbf601d7bac77976d429e9bdb5a4614f9f4027777f9e54fd765196e9d3b"},
