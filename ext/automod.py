@@ -34,12 +34,14 @@ class Automod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
+        perms = message.channel.permissions_for(message.guild.me)
         if (
             message.author.bot
             or message.channel.type == disnake.ChannelType.private
             or len(message.content) == 0
             or message.author.guild_permissions.manage_guild
-            or not message.channel.permissions_for(message.guild.me).send_messages
+            or not perms.send_messages
+            or not perms.read_messages
         ):
             return
 
@@ -76,14 +78,24 @@ class Automod(commands.Cog):
                 >= 120
             ):
                 self.permission_warnings[message.guild.id] = datetime.now()
-                await message.channel.send(
-                    embed=WarningEmbed(
-                        message,
-                        title="Missing Permissions",
-                        description="The bot is missing `MANAGE MESSAGES` permission and cannot apply filters. \
+                try:
+                    await message.channel.send(
+                        embed=WarningEmbed(
+                            message,
+                            title="Missing Permissions",
+                            description="The bot is missing `MANAGE MESSAGES` permission and cannot apply filters. \
 Please grant the required permission to the bot.",
+                        )
                     )
-                )
+                except disnake.HTTPException:
+                    self.bot.log.warning(
+                        "The bot is missing SEND MESSAGE permissions in guild %s",
+                        message.guild.id,
+                    )
+                    try:
+                        await message.guild.me.edit(nick="NO PERMISSIONS")
+                    except disnake.HTTPException:
+                        pass
         except disnake.NotFound:
             pass
         except Exception as e:
