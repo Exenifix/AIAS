@@ -186,7 +186,7 @@ async def asyncf():
         await inter.send(embed=embed)
     except Exception as e:
         await inter.send(embed=ErrorEmbed(inter, "Failed to execute code.").add_field("Exception", str(e)))
-    
+
 asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
         env = {
             "asyncio": asyncio,
