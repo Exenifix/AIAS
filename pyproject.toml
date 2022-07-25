@@ -10,7 +10,7 @@ python = ">=3.10,<3.11"
 disnake = "^2.5.1"
 python-dotenv = "^0.20.0"
 scikit-learn = "^1.1.1"
-exencolorlogs = "^1.0.1"
+exencolorlogs = "^1.0.2"
 psutil = "^5.9.1"
 asyncpg = "^0.26.0"
 
