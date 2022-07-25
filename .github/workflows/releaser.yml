@@ -1,0 +1,12 @@
+name: Releaser
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Release
+        uses: Exenifix/autotag@v1.0
