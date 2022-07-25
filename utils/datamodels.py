@@ -426,6 +426,7 @@ class GuildData:
             await self._select("blacklist_" + mode.value, FetchMode.VAL)
         )
         words = set(map(lambda s: preformat(s, mode), words))
+        words.remove("")
 
         current |= words
         try:

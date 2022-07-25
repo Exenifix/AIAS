@@ -1,5 +1,6 @@
 import re
 
+from disnake.utils import remove_markdown
 from utils.enums import BlacklistMode
 
 BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,\n"
@@ -36,7 +37,7 @@ def _find_all_characters(s: str, char: str):
 
 
 def _format_expression(expr: str) -> str:
-    expr = expr.strip().lower().replace("\n", "")
+    expr = remove_markdown(expr.strip().lower().replace("\n", ""))
     reg_indicators = set(re.findall(REG_INDICATOR_PATTERN, expr))
     for ind in reg_indicators:
         ind: str
