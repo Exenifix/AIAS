@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "AIAS"
-version = "1.3.1"
+version = "1.0"
 description = "AIAS (Artifical Intelligence AntiSpam) is an open-source Discord bot that has innovative moderation features, such as nextgen word filter and AI-based spam detection."
 authors = ["Exenifix"]
 license = "Apache-2.0"
