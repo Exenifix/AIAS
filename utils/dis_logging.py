@@ -46,6 +46,7 @@ class GuildLogger:
         is_antiraid: bool = False,
         old_nickname: str = None,
         new_nickname: str = None,
+        filtered_expression: str = None,
     ):
         if self.log_channel is None:
             return
@@ -73,6 +74,17 @@ class GuildLogger:
                 embed.add_field(
                     "Blocked Content", f"```{blocked_content}```", inline=False
                 )
+
+            case ActionType.BLACKLIST_DELETION:
+                embed.description = (
+                    f"A message was deleted from {channel.mention} because it contained blacklisted "
+                    "expressions."
+                )
+                embed.add_field(
+                    "Blocked Content", f"```{blocked_content}```", inline=False
+                )
+                if filtered_expression is not None:
+                    embed.add_field("Filtered", filtered_expression)
 
             case ActionType.QUEUE_DELETION:
                 embed.description = f"{len(deleted_messages)} messages were deleted from {channel.mention}."
@@ -183,3 +195,18 @@ class GuildLogger:
 
     async def log_antiraid_kick(self, target: disnake.Member):
         await self._log_action(ActionType.ANTIRAID_KICK, target)
+
+    async def log_blacklist_deletion(
+        self,
+        target: disnake.Member,
+        channel: disnake.TextChannel,
+        blocked_content: str,
+        filtered_expression: str | None,
+    ):
+        await self._log_action(
+            ActionType.BLACKLIST_DELETION,
+            target,
+            channel=channel,
+            blocked_content=blocked_content,
+            filtered_expression=filtered_expression,
+        )

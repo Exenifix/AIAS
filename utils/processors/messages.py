@@ -198,8 +198,8 @@ This member will be muted in **{warnings} warnings.**",
                     delete_after=5,
                 )
             log = await guild.get_logger(self.bot)
-            await log.log_single_deletion(
-                message.author, message.channel, message.content
+            await log.log_blacklist_deletion(
+                message.author, message.channel, message.content, expr
             )
             return True
         else:

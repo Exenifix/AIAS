@@ -29,6 +29,7 @@ class ActionType(Enum):
     NICK_CHANGE = 4
     ANTIRAID_BAN = 5
     ANTIRAID_KICK = 6
+    BLACKLIST_DELETION = 7
 
 
 class AntiraidPunishment(Enum):
