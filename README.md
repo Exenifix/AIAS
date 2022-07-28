@@ -1,9 +1,13 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Exenifix/AIAS/Docker%20Runner?label=deployment&style=for-the-badge)
+![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/Exenifix/AIAS?color=%2328f7c7&style=for-the-badge)
+![GitHub](https://img.shields.io/github/license/Exenifix/AIAS?color=%23ff0000&style=for-the-badge)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Exenifix/AIAS?label=latest%20release&style=for-the-badge)
+![AIAS](https://github.com/Exenifix/AIAS/blob/master/.github/img/banner.png)
+
 # AIAS
 
 AIAS (Artificial Intelligence AntiSpam) is an open-source Discord bot that has innovative moderation features, such as
 nextgen word filter and AI-based spam detection.
-
-## Cool Banner
 
 ![Discord Bots](https://top.gg/api/widget/962093056910323743.svg)<br>
 
