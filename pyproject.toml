@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-disnake = "^2.5.1"
+disnake = "^2.5.2"
 python-dotenv = "^0.20.0"
 scikit-learn = "^1.1.1"
 exencolorlogs = "^1.0.2"
