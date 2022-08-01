@@ -47,6 +47,11 @@ class SystemListeners(commands.Cog):
         self.bot.log.info(
             "Joined guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds)
         )
+        await self.bot.db.execute(
+            "INSERT INTO guilds (id, description) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET description = $2 WHERE guilds.id = $1",
+            guild.id,
+            guild.description,
+        )
         await self.bot.log_channel.send(
             embed=BaseEmbed(
                 self.bot.owner,
@@ -100,6 +105,15 @@ Once again, thanks for inviting AIAS! We hope it will help you improve moderatio
                 f"**Name:** `{guild.name}`\n**Owner:** {guild.owner}\n**Members:** `{guild.member_count}`",
             )
         )
+
+    @commands.Cog.listener()
+    async def on_guild_update(self, before: disnake.Guild, after: disnake.Guild):
+        if before.description != after.description:
+            await self.bot.db.execute(
+                "UPDATE guilds SET description = $1 WHERE id = $2",
+                after.description,
+                after.id,
+            )
 
 
 class SystemLoops(commands.Cog):

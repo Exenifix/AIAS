@@ -43,7 +43,9 @@ CREATE TABLE IF NOT EXISTS guilds
 
     log_channel              BIGINT,
 
-    automod_managers         BIGINT[] DEFAULT ARRAY []::BIGINT[]
+    automod_managers         BIGINT[] DEFAULT ARRAY []::BIGINT[],
+
+    description TEXT -- used in site API
 );
 
 CREATE TABLE IF NOT EXISTS version_data
@@ -53,7 +55,7 @@ CREATE TABLE IF NOT EXISTS version_data
 );
 
 INSERT INTO version_data (id, version)
-VALUES (0, 9)
+VALUES (0, 10)
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS rules
