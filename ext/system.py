@@ -31,7 +31,13 @@ class SystemListeners(commands.Cog):
         if msg is UNKNOWN:
             await inter.send(
                 embed=ErrorEmbed(
-                    inter, description=f"Unknown error occured\n```py\n{error}```"
+                    inter,
+                    description="Sorry, the bot has encountered unknown exception. The developer has already been notified "
+                    "and the error will be resolved as soon as possible. To get notified when the error is fixed, "
+                    "head to bot's [GitHub pag](https://github.com/Exenifix/AIAS) and press **Watch**, "
+                    "in custom activity select **Releases**. When the issue is fixed, a new release will "
+                    "be published. Also, you may join our [support server](https://discord.gg/TsSAfdN4hS) "
+                    "and ask the developers themselves about this issue.",
                 )
             )
             raise error
