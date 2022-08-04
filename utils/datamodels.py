@@ -527,7 +527,7 @@ class GuildData:
         autocomplete.invalidate_rules(self.id)
 
     async def get_rule(self, key: str) -> str:
-        val = await self._db.execute(
+        val: str = await self._db.execute(
             "SELECT rule_text FROM rules WHERE id = $1 AND rule_key = $2",
             self.id,
             key,

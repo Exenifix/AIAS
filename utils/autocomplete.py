@@ -12,9 +12,8 @@ async def autocomplete_rules(inter: disnake.ApplicationCommandInteraction, arg: 
     if inter.guild.id in rules_cache:
         result = rules_cache[inter.guild.id]
     else:
-        rules = list(
-            (await inter.bot.db.get_guild(inter.guild.id).get_all_rules()).keys()
-        )
+        r = await inter.bot.db.get_guild(inter.guild.id).get_all_rules()
+        rules = list(r.keys()) if r is not None else []
         rules_cache[inter.guild.id] = rules
         result = rules
 
