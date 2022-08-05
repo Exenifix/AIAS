@@ -1,10 +1,10 @@
 import re
 from collections import namedtuple
 
-CHANNEL_REGEX = re.compile(r"<#\d{18}>")
-ROLE_REGEX = re.compile(r"<@&\d{18}>")
-MENTION_REGEX = re.compile(r"<@!?\d{18}>")
-EMOJI_REGEX = re.compile(r"<a?:\w*:\d{18}>")
+CHANNEL_REGEX = re.compile(r"<#\d{18,19}>")
+ROLE_REGEX = re.compile(r"<@&\d{18,19}>")
+MENTION_REGEX = re.compile(r"<@!?\d{18,19}>")
+EMOJI_REGEX = re.compile(r"<a?:\w*:\d{18,19}>")
 
 analysis_data = namedtuple(
     "analysis_data",

@@ -8,7 +8,7 @@ from utils.enums import ViewResponse
 
 T = TypeVar("T")
 
-TARGET_ID_PATTERN = re.compile(r"`\d{18}`")
+TARGET_ID_PATTERN = re.compile(r"`\d{18,19}`")
 
 
 def _get_field(embed: disnake.Embed, name: str) -> str | None:
