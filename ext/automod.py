@@ -34,6 +34,8 @@ class Automod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
+        if not isinstance(message.author, disnake.Member):
+            return
         perms = message.channel.permissions_for(message.guild.me)
         if (
             message.author.bot
