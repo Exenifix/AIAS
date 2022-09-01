@@ -8,6 +8,7 @@ from disnake.ext import commands
 from utils.bot import Bot
 from utils.embeds import BaseEmbed, SuccessEmbed
 from utils.enums import FetchMode
+from utils.nicknames import generate_random_nick
 
 
 class Miscellaneous(commands.Cog):
@@ -62,6 +63,19 @@ class Miscellaneous(commands.Cog):
                 disable_bold=True,
             ),
             ephemeral=True,
+        )
+
+    @commands.user_command(name="Set Random Nick", dm_permission=False)
+    @commands.has_permissions(manage_nicknames=True)
+    async def set_random_nick(
+        self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member
+    ):
+        nick = generate_random_nick()
+        await user.edit(nick=nick)
+        await inter.send(
+            embed=SuccessEmbed(
+                inter, f"Successfully set {user.mention}'s nickname to **{nick}**"
+            )
         )
 
 
