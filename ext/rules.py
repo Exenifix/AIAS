@@ -64,6 +64,7 @@ class Rules(commands.Cog):
         rules = await self.bot.db.get_guild(inter.guild.id).get_all_rules()
         if rules is None or len(rules) == 0:
             await inter.send(f"There are no rules.", ephemeral=True)
+            return
 
         rules = sorted_dict(rules)
         text = ""
