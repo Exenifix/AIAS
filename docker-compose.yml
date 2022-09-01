@@ -14,3 +14,4 @@ services:
       - USER
       - PASSWORD
       - TOPGG_TOKEN
+    restart: always
