@@ -6,7 +6,7 @@ import psutil
 from disnake.ext import commands
 
 from utils.bot import Bot
-from utils.embeds import BaseEmbed, SuccessEmbed
+from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
 from utils.enums import FetchMode
 from utils.nicknames import generate_random_nick
 
@@ -70,8 +70,24 @@ class Miscellaneous(commands.Cog):
     async def set_random_nick(
         self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member
     ):
+        if inter.user.top_role <= user.top_role:
+            await inter.send(
+                embed=ErrorEmbed(
+                    inter,
+                    "You cannot assign random nickname to someone higher or equal in role than you",
+                ),
+                ephemeral=True,
+            )
+            return
         nick = generate_random_nick()
-        await user.edit(nick=nick)
+        try:
+            await user.edit(nick=nick)
+        except disnake.Forbidden:
+            await inter.send(
+                embed=ErrorEmbed(inter, "Bot cannot edit nickname of this person"),
+                ephemeral=True,
+            )
+            return
         await inter.send(
             embed=SuccessEmbed(
                 inter, f"Successfully set {user.mention}'s nickname to **{nick}**"
