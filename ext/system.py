@@ -23,6 +23,8 @@ class SystemListeners(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
+    @commands.Cog.listener("on_user_command_error")
+    @commands.Cog.listener("on_message_command_error")
     async def on_slash_command_error(
         self, inter: disnake.Interaction, error: commands.CommandError
     ):
