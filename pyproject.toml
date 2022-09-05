@@ -8,10 +8,10 @@ license = "Apache-2.0"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 disnake = "^2.5.2"
-python-dotenv = "^0.20.0"
+python-dotenv = "^0.21.0"
 scikit-learn = "^1.1.2"
 exencolorlogs = "^1.0.2"
-psutil = "^5.9.1"
+psutil = "^5.9.2"
 asyncpg = "^0.26.0"
 emoji = "^2.0.0"
 
