@@ -85,7 +85,7 @@ unicode_backport = ["unicodedata2"]
 
 [[package]]
 name = "disnake"
-version = "2.5.2"
+version = "2.6.0"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -96,8 +96,8 @@ aiohttp = ">=3.7.0,<3.9.0"
 
 [package.extras]
 discord = ["discord-disnake"]
-docs = ["sphinx (>=4.4.0,<4.5.0)", "sphinx-autobuild (==2021.3.14)", "sphinx-hoverxref (>=1.0.0,<1.1.0)", "sphinxcontrib-trio (==1.1.2)"]
-speed = ["Brotli", "aiodns (>=1.1)", "cchardet", "orjson (>=3.5.4)"]
+docs = ["docutils (>=0.17)", "sphinx (>=5.1.1,<5.2.0)", "sphinx-autobuild (>=2021.3,<2022.0)", "sphinx-hoverxref (==1.1.3)", "sphinxcontrib-towncrier (==0.2.1a0)", "sphinxcontrib-trio (>=1.1.2,<1.2.0)", "towncrier (==21.9.0)"]
+speed = ["Brotli", "aiodns (>=1.1)", "cchardet", "orjson (>=3.6,<4.0)"]
 voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [[package]]
@@ -362,7 +362,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "fbacfd5009f106701dd1c29a0e3e92ab8a8c9e7ea3786ca27395b303de16a990"
+content-hash = "7be82c7f1b235f46ef6c3ef3660db86b0f2a7dff179160c8d3704014d3216969"
 
 [metadata.files]
 aiohttp = [
@@ -488,8 +488,8 @@ charset-normalizer = [
     {file = "charset_normalizer-2.1.1-py3-none-any.whl", hash = "sha256:83e9a75d1911279afd89352c68b45348559d1fc0506b054b346651b5e7fee29f"},
 ]
 disnake = [
-    {file = "disnake-2.5.2-py3-none-any.whl", hash = "sha256:e36faa97afce4c8caacee1c68ba08903611bbb8dd455bd95e32867a1c6b0352a"},
-    {file = "disnake-2.5.2.tar.gz", hash = "sha256:9fae801275b8ba448de9d9d3cc78b264bd5e1f9225292dad68e7b95eb5e6de68"},
+    {file = "disnake-2.6.0-py3-none-any.whl", hash = "sha256:d50c8aa7eac22bf46dd3ce1735225c7f140399343d641ffa968af5b6674c4c29"},
+    {file = "disnake-2.6.0.tar.gz", hash = "sha256:c6082b6ee57ee4d60ee8e9d1221110a384b26fa83808bede8a718ebf13cca3eb"},
 ]
 distlib = [
     {file = "distlib-0.3.6-py2.py3-none-any.whl", hash = "sha256:f35c4b692542ca110de7ef0bea44d73981caeb34ca0b9b6b2e6d7790dda8f80e"},
@@ -732,6 +732,13 @@ PyYAML = [
     {file = "PyYAML-6.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f84fbc98b019fef2ee9a1cb3ce93e3187a6df0b2538a651bfb890254ba9f90b5"},
     {file = "PyYAML-6.0-cp310-cp310-win32.whl", hash = "sha256:2cd5df3de48857ed0544b34e2d40e9fac445930039f3cfe4bcc592a1f836d513"},
     {file = "PyYAML-6.0-cp310-cp310-win_amd64.whl", hash = "sha256:daf496c58a8c52083df09b80c860005194014c3698698d1a57cbcfa182142a3a"},
+    {file = "PyYAML-6.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:d4b0ba9512519522b118090257be113b9468d804b19d63c71dbcf4a48fa32358"},
+    {file = "PyYAML-6.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:81957921f441d50af23654aa6c5e5eaf9b06aba7f0a19c18a538dc7ef291c5a1"},
+    {file = "PyYAML-6.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:afa17f5bc4d1b10afd4466fd3a44dc0e245382deca5b3c353d8b757f9e3ecb8d"},
+    {file = "PyYAML-6.0-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:dbad0e9d368bb989f4515da330b88a057617d16b6a8245084f1b05400f24609f"},
+    {file = "PyYAML-6.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:432557aa2c09802be39460360ddffd48156e30721f5e8d917f01d31694216782"},
+    {file = "PyYAML-6.0-cp311-cp311-win32.whl", hash = "sha256:bfaef573a63ba8923503d27530362590ff4f576c626d86a9fed95822a8255fd7"},
+    {file = "PyYAML-6.0-cp311-cp311-win_amd64.whl", hash = "sha256:01b45c0191e6d66c470b6cf1b9531a771a83c1c4208272ead47a3ae4f2f603bf"},
     {file = "PyYAML-6.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:897b80890765f037df3403d22bab41627ca8811ae55e9a722fd0392850ec4d86"},
     {file = "PyYAML-6.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:50602afada6d6cbfad699b0c7bb50d5ccffa7e46a3d738092afddc1f9758427f"},
     {file = "PyYAML-6.0-cp36-cp36m-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:48c346915c114f5fdb3ead70312bd042a953a8ce5c7106d5bfb1a5254e47da92"},
