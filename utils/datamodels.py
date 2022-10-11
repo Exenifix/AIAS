@@ -465,6 +465,22 @@ class GuildData:
     async def set_whitelist_characters(self, value: str):
         await self._update(whitelist_characters=value)
 
+    async def add_whitelist_characters(self, chars: str) -> int:
+        s = set(chars) - {"", " "}
+        if len(s) == 0:
+            return 0
+
+        current = set(await self._select("whitelist_characters", FetchMode.VAL))
+        new = current | s
+        await self.set_whitelist_characters(str(new))
+        return len(new) - len(current)
+
+    async def remove_whitelist_characters(self, chars: str) -> int:
+        current = set(await self._select("whitelist_characters", FetchMode.VAL))
+        new = current - set(chars)
+        await self.set_whitelist_characters(str(new))
+        return len(current) - len(new)
+
     async def add_whitelist_ignored(self, value: int):
         ignored = await self._select("whitelist_ignored", FetchMode.VAL)
         if value in ignored:

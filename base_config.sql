@@ -14,38 +14,38 @@ CREATE TABLE IF NOT EXISTS data
 CREATE TABLE IF NOT EXISTS guilds
 (
     id                       BIGINT UNIQUE NOT NULL,
-    warnings_threshold       INT      DEFAULT 3 CHECK (warnings_threshold > 0 AND warnings_threshold <= 10),
-    timeout_duration         INT      DEFAULT 15 CHECK (timeout_duration > 0 AND timeout_duration < 80000),
+    warnings_threshold       INT           DEFAULT 3 CHECK (warnings_threshold > 0 AND warnings_threshold <= 10),
+    timeout_duration         INT           DEFAULT 15 CHECK (timeout_duration > 0 AND timeout_duration < 80000),
 
-    antispam_enabled         BOOLEAN  DEFAULT TRUE,
-    antispam_ignored         BIGINT[] DEFAULT ARRAY []::BIGINT[],
+    antispam_enabled         BOOLEAN       DEFAULT TRUE,
+    antispam_ignored         BIGINT[]      DEFAULT ARRAY []::BIGINT[],
 
-    blacklist_enabled        BOOLEAN  DEFAULT TRUE,
-    blacklist_ignored        BIGINT[] DEFAULT ARRAY []::BIGINT[],
-    blacklist_common         TEXT[]   DEFAULT ARRAY []::TEXT[] CHECK (ARRAY_LENGTH(blacklist_common, 1) <= 50),
-    blacklist_wild           TEXT[]   DEFAULT ARRAY []::TEXT[] CHECK (ARRAY_LENGTH(blacklist_wild, 1) <= 50),
-    blacklist_super          TEXT[]   DEFAULT ARRAY []::TEXT[] CHECK (ARRAY_LENGTH(blacklist_super, 1) <= 50),
-    blacklist_filter_enabled BOOLEAN  DEFAULT TRUE,
+    blacklist_enabled        BOOLEAN       DEFAULT TRUE,
+    blacklist_ignored        BIGINT[]      DEFAULT ARRAY []::BIGINT[],
+    blacklist_common         TEXT[]        DEFAULT ARRAY []::TEXT[] CHECK (ARRAY_LENGTH(blacklist_common, 1) <= 50),
+    blacklist_wild           TEXT[]        DEFAULT ARRAY []::TEXT[] CHECK (ARRAY_LENGTH(blacklist_wild, 1) <= 50),
+    blacklist_super          TEXT[]        DEFAULT ARRAY []::TEXT[] CHECK (ARRAY_LENGTH(blacklist_super, 1) <= 50),
+    blacklist_filter_enabled BOOLEAN       DEFAULT TRUE,
 
-    whitelist_enabled        BOOLEAN  DEFAULT FALSE,
-    whitelist_characters     TEXT     DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''"/\|<>.,1234567890',
-    whitelist_ignored        BIGINT[] DEFAULT ARRAY []::BIGINT[],
+    whitelist_enabled        BOOLEAN       DEFAULT FALSE,
+    whitelist_characters     VARCHAR(1024) DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''"/\|<>.,1234567890',
+    whitelist_ignored        BIGINT[]      DEFAULT ARRAY []::BIGINT[],
 
-    nickfilter_enabled       BOOLEAN  DEFAULT TRUE,
-    nickfilter_ignored       BIGINT[] DEFAULT ARRAY []::BIGINT[],
+    nickfilter_enabled       BOOLEAN       DEFAULT TRUE,
+    nickfilter_ignored       BIGINT[]      DEFAULT ARRAY []::BIGINT[],
 
-    antiraid_enabled         BOOLEAN  DEFAULT FALSE,
-    antiraid_join_interval   INT      DEFAULT 30,
-    antiraid_members_limit   INT      DEFAULT 5,
-    antiraid_punishment      INT      DEFAULT 1, -- decodification in utils.enums.AntiraidPunishment
+    antiraid_enabled         BOOLEAN       DEFAULT FALSE,
+    antiraid_join_interval   INT           DEFAULT 30,
+    antiraid_members_limit   INT           DEFAULT 5,
+    antiraid_punishment      INT           DEFAULT 1, -- decodification in utils.enums.AntiraidPunishment
 
-    linkfilter_enabled       BOOLEAN  DEFAULT TRUE,
+    linkfilter_enabled       BOOLEAN       DEFAULT TRUE,
 
     log_channel              BIGINT,
 
-    automod_managers         BIGINT[] DEFAULT ARRAY []::BIGINT[],
+    automod_managers         BIGINT[]      DEFAULT ARRAY []::BIGINT[],
 
-    description TEXT -- used in site API
+    description              TEXT                     -- used in site API
 );
 
 CREATE TABLE IF NOT EXISTS version_data

@@ -461,6 +461,43 @@ __**Are you sure you want to overwrite the existing characters with the new ones
             )
         )
 
+    @whitelist_group.sub_command(
+        name="addchars", description="Adds specified characters to the whitelist."
+    )
+    async def whitelist_addchars(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        characters: str = disnake.Option(
+            "characters",
+            description="Just a load of characters you want to add, no any separators.",
+        ),
+    ):
+        if len(characters) >= 50:
+            await inter.send("No more than 50 characters can be added at once.")
+        await inter.response.defer()
+        added = await self.bot.db.get_guild(inter.guild.id).add_whitelist_characters(
+            characters
+        )
+        await inter.send(f"Successfully added **{added}** characters.")
+
+    @whitelist_group.sub_command(
+        name="removechars",
+        description="Removes specified characters from the whitelist.",
+    )
+    async def whitelist_removechars(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        characters: str = disnake.Option(
+            "characters",
+            description="Just a load of characters you want to remove, no any separators.",
+        ),
+    ):
+        await inter.response.defer()
+        removed = await self.bot.db.get_guild(inter.guild.id).add_whitelist_characters(
+            characters
+        )
+        await inter.send(f"Successfully removed **{removed}** characters.")
+
     @whitelist_group.sub_command_group(name="ignore")
     async def whitelist_ignore(self, *_):
         pass

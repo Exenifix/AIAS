@@ -2,7 +2,7 @@ from ai.analyser import analyse_sample
 
 from utils.enums import FetchMode
 
-version = 10
+version = 11
 
 
 async def update_db(db):
@@ -105,6 +105,10 @@ async def update_db(db):
                     )
                 case 10:
                     sqls = ["ALTER TABLE guilds ADD COLUMN description TEXT"]
+                case 11:
+                    sqls = [
+                        "ALTER TABLE guilds ALTER COLUMN whitelist_characters TYPE VARCHAR(1024)"
+                    ]
 
             for sql in sqls:
                 async with db._pool.acquire() as con:
