@@ -22,10 +22,10 @@ class SystemListeners(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_slash_command_error")
     @commands.Cog.listener("on_user_command_error")
     @commands.Cog.listener("on_message_command_error")
-    async def on_slash_command_error(
+    async def error_handler(
         self, inter: disnake.Interaction, error: commands.CommandError
     ):
         msg = get_error_message(inter, error)
@@ -34,12 +34,12 @@ class SystemListeners(commands.Cog):
             await inter.send(
                 embed=ErrorEmbed(
                     inter,
-                    description="Sorry, the bot has encountered unknown exception. The developer has already been notified "
-                    "and the error will be resolved as soon as possible. To get notified when the error is fixed, "
-                    "head to bot's [GitHub pag](https://github.com/Exenifix/AIAS) and press **Watch**, "
-                    "in custom activity select **Releases**. When the issue is fixed, a new release will "
+                    description="Sorry, the bot has encountered unknown exception. The developer has already "
+                    "been notified and this will be resolved as soon as possible. To get notified when it's fixed, "
+                    "head to bot's [GitHub page](https://github.com/Exenifix/AIAS) and press **Watch** -> "
+                    "**Custom Activity** -> **Releases**. When the issue is fixed, a new release will "
                     "be published. Also, you may join our [support server](https://discord.gg/TsSAfdN4hS) "
-                    "and ask the developers themselves about this issue.",
+                    "and ask the developers themselves about it.",
                 )
             )
             raise error
