@@ -613,20 +613,21 @@ This member will be muted in **{warnings} warnings.**",
         else:
             await inter.send(f"Member was muted", ephemeral=True)
 
-        view = BaseView(
-            inter.author.id,
-            [Button(True, label="yes", style=disnake.ButtonStyle.green)],
-        )
+        view = ConfirmationView(inter.author.id)
         await inter.send("Was this message a spam message?", view=view)
         res, inter = await view.get_result()
-        if res:
+        if res == ViewResponse.YES:
             await inter.send(
                 "Okay, we sent the message to our database for further review. Thanks for helping us improve!",
                 ephemeral=True,
             )
             await self.bot.db.register_message(message.content)
-        else:
+        elif res == ViewResponse.NO:
             await inter.send("Thanks for feedback!", ephemeral=True)
+        elif res == ViewResponse.TIMEOUT:
+            await inter.edit_original_message(
+                content="Interaction timed out.", view=None
+            )
 
 
 class AutotimeoutManagement(commands.Cog):

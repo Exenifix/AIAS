@@ -104,6 +104,10 @@ class ConfirmationView(BaseView):
             ],
         )
 
+    async def on_timeout(self) -> None:
+        self.value = ViewResponse.TIMEOUT
+        self.stop()
+
 
 class AntispamView(disnake.ui.View):
     def __init__(self):
@@ -169,7 +173,7 @@ class UnbanView(disnake.ui.View):
     async def unban(self, _, inter: disnake.MessageInteraction):
         if not inter.author.guild_permissions.ban_members:
             await inter.send(
-                "You have got no permissions to perform this action.", ephemeral=True
+                "You don't have permissions to perform this action.", ephemeral=True
             )
             return
 
