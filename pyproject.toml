@@ -13,7 +13,7 @@ scikit-learn = "^1.1.2"
 exencolorlogs = "^1.0.2"
 psutil = "^5.9.2"
 asyncpg = "^0.26.0"
-emoji = "^2.1.0"
+emoji = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.20.0"
