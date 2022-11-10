@@ -1,6 +1,7 @@
 import re
 
 from disnake.utils import remove_markdown
+
 from utils.enums import BlacklistMode
 
 BANNED_SYMBOLS = "!@#$%^&*(){}[]<>-_=+?~`:;'\"/\\|<>.,\n"

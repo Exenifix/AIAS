@@ -1,11 +1,15 @@
 from ai.analyser import analyse_sample
+from typing import TYPE_CHECKING
 
 from utils.enums import FetchMode
+
+if TYPE_CHECKING:
+    from utils.datamodels import Database
 
 version = 11
 
 
-async def update_db(db):
+async def update_db(db: "Database"):
     db.log.info("Checking database version incompatibilities...")
     db_version: int = await db.execute(
         "SELECT version FROM version_data WHERE id = 0", fetch_mode=FetchMode.VAL
