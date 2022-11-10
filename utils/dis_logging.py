@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Sequence
+from typing import Sequence, TYPE_CHECKING
 
 import disnake
 from exencolorlogs import Logger
@@ -8,6 +8,9 @@ from exencolorlogs import Logger
 from utils.embeds import BaseEmbed
 from utils.enums import ActionType
 from utils.views import AntispamView, UnbanView, UntimeoutView
+
+if TYPE_CHECKING:
+    from utils.bot import Bot
 
 cooldowns: dict[int, "LogEntry"] = {}
 
@@ -23,16 +26,22 @@ class GuildLogger:
     guild: disnake.Guild
     log_channel: disnake.TextChannel | None
     log: Logger
+    bot: "Bot"
 
-    async def load(self, bot, guild_id: int):
+    async def load(self, bot: "Bot", guild_id: int):
         self.bot = bot
         self.guild: disnake.Guild = bot.get_guild(guild_id)
         self.log = Logger(f"GUILDLOG {guild_id}")
-        log_id = await bot.db.get_guild(guild_id).get_log_channel_id()
+        guild = bot.db.get_guild(guild_id)
+        log_id = await guild.get_log_channel_id()
         if log_id is None:
             self.log_channel = None
         else:
-            self.log_channel = await self.guild.fetch_channel(log_id)
+            try:
+                self.log_channel = await self.guild.fetch_channel(log_id)
+            except disnake.HTTPException:
+                await guild.set_log_channel_id(None)
+                self.log_channel = None
 
     async def _log_action(
         self,
