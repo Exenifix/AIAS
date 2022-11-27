@@ -55,6 +55,7 @@ While using Our Service, We cannot ask You to provide Us with certain personally
 
 *   Usage Data
 *   Discord IDs
+*   Message Content Data
 
 ### Usage Data
 
@@ -67,6 +68,10 @@ Usage Data includes amount of certain commands used, messages processed and bloc
 For identification of objects on Discord platform, where the Application is working, the IDs are used. They are provided by Discord and can be used for identifying users or servers, however, they cannot be used to identify a person. IDs are assigned solely by Discord.
 
 We use Discord IDs for saving personal settings.
+
+### Message Content Data
+
+To train AI model, we require some data extracted from messages that are sent on Discord platform. Those exactly are amount of unique characters and words, total characters and words. Message content is not stored as is, but this data is extracted and saved.
 
 Use of Your Personal Data
 -------------------------
