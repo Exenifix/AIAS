@@ -17,6 +17,7 @@ from utils import embeds
 from utils.constants import (
     EMOJIS,
     LOG_CHANNEL_ID,
+    OWNER_ID,
     TRAIN_GUILD_IDS,
     WARNINGS_RESET_INTERVAL,
 )
@@ -102,6 +103,7 @@ class Bot(commands.Bot):
         embeds.init(self.sys_emojis)
 
         self.log_channel = await self.fetch_channel(LOG_CHANNEL_ID)
+        self.owner = self.get_user(OWNER_ID)
 
     async def on_error(self, event_method: str, *args, **kwargs):
         self.log.error("Unhandled exception occured at %s", event_method)
