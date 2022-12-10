@@ -27,8 +27,8 @@ class BaseEmbed(disnake.Embed):
     def __init__(
         self,
         ctx: Contextable | disnake.Member | disnake.User,
-        title: str,
-        description: str,
+        title: str | None,
+        description: str | None,
     ):
         super().__init__(
             color=COLOR, title=title, description=description, timestamp=datetime.now()

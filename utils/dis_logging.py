@@ -74,7 +74,7 @@ class GuildLogger:
         embed = BaseEmbed(
             target,
             f"{self.bot.sys_emojis.checkmark} Action Logging",
-            disnake.Embed.Empty,
+            None,
         )
         embed.add_field("Target", f"**{target}** {target.mention}\n`{target.id}`")
         match action:

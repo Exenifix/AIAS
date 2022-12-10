@@ -27,7 +27,7 @@ from utils.views import AntispamView, ReportedNotSpamView, UnbanView, UntimeoutV
 REQUIRED_FOLDERS = ("logs",)
 
 
-class Bot(commands.Bot):
+class Bot(commands.InteractionBot):
     log_channel: disnake.TextChannel
 
     def __init__(self):
@@ -46,6 +46,7 @@ class Bot(commands.Bot):
             ),
             test_guilds=test_guilds,
         )
+
         self.db: Database = Database()
         self.sys_emojis: embeds.Emojis = embeds.Emojis()
         self.warnings: WarningsManager = WarningsManager(self)
@@ -106,7 +107,7 @@ class Bot(commands.Bot):
         self.owner = self.get_user(OWNER_ID)
 
     async def on_error(self, event_method: str, *args, **kwargs):
-        self.log.error("Unhandled exception occured at %s", event_method)
+        self.log.error("Unhandled exception occurred at %s", event_method)
         await self.log_error()
 
     async def log_error(self):
