@@ -90,7 +90,9 @@ class Miscellaneous(commands.Cog):
             return
         await inter.send(
             embed=SuccessEmbed(
-                inter, f"Successfully set {user.mention}'s nickname to **{nick}**"
+                inter,
+                f"Successfully set {user.mention}'s nickname to **{nick}**",
+                disable_bold=True,
             )
         )
 
