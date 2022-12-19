@@ -30,15 +30,11 @@ class BaseEmbed(disnake.Embed):
         title: str | None,
         description: str | None,
     ):
-        super().__init__(
-            color=COLOR, title=title, description=description, timestamp=datetime.now()
-        )
+        super().__init__(color=COLOR, title=title, description=description, timestamp=datetime.now())
         if isinstance(ctx, (disnake.Member, disnake.User)):
             self.set_footer(text=ctx, icon_url=ctx.display_avatar.url)
         else:
-            self.set_footer(
-                text=str(ctx.author), icon_url=ctx.author.display_avatar.url
-            )
+            self.set_footer(text=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
 
 class SuccessEmbed(BaseEmbed):

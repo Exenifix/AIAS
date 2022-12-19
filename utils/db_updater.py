@@ -1,6 +1,6 @@
-from ai.analyser import analyse_sample
 from typing import TYPE_CHECKING
 
+from ai.analyser import analyse_sample
 from utils.enums import FetchMode
 
 if TYPE_CHECKING:
@@ -11,9 +11,7 @@ version = 11
 
 async def update_db(db: "Database"):
     db.log.info("Checking database version incompatibilities...")
-    db_version: int = await db.execute(
-        "SELECT version FROM version_data WHERE id = 0", fetch_mode=FetchMode.VAL
-    )
+    db_version: int = await db.execute("SELECT version FROM version_data WHERE id = 0", fetch_mode=FetchMode.VAL)
     if db_version == version:
         db.log.ok("Database is at latest version, no actions required.")
         return
@@ -26,7 +24,7 @@ async def update_db(db: "Database"):
         for v in range(db_version + 1, version + 1):
             db.log.info("Executing compatibility script #%s", v)
             sqls = []
-            match v:
+            match v:  # noqa: E999
                 case 1:
                     sqls = [
                         "ALTER TABLE guilds ALTER COLUMN antispam_enabled SET DEFAULT TRUE",
@@ -34,24 +32,28 @@ async def update_db(db: "Database"):
                     ]
                 case 2:
                     sqls = [
-                        "ALTER TABLE guilds ADD COLUMN warnings_threshold INT DEFAULT 3 CHECK(warnings_threshold > 0 AND warnings_threshold <= 10)",
-                        "ALTER TABLE guilds ADD COLUMN timeout_duration INT DEFAULT 15 CHECK(timeout_duration > 0 AND timeout_duration < 80000)",
+                        "ALTER TABLE guilds ADD COLUMN warnings_threshold INT DEFAULT 3 "
+                        "CHECK(warnings_threshold > 0 AND warnings_threshold <= 10)",
+                        "ALTER TABLE guilds ADD COLUMN timeout_duration INT DEFAULT 15 "
+                        "CHECK(timeout_duration > 0 AND timeout_duration < 80000)",
                         "ALTER TABLE guilds ADD COLUMN whitelist_enabled BOOLEAN DEFAULT FALSE",
-                        "ALTER TABLE guilds ADD COLUMN whitelist_characters TEXT DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
+                        "ALTER TABLE guilds ADD COLUMN whitelist_characters TEXT "
+                        "DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
                         "ALTER TABLE guilds ADD COLUMN nickfilter_enabled BOOLEAN DEFAULT TRUE",
                         "ALTER TABLE guilds ADD COLUMN nickfilter_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]",
                         "ALTER TABLE guilds ADD COLUMN log_channel BIGINT",
                     ]
                 case 3:
-                    sqls = [
-                        "ALTER TABLE guilds ADD COLUMN whitelist_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]"
-                    ]
+                    sqls = ["ALTER TABLE guilds ADD COLUMN whitelist_ignored BIGINT[] DEFAULT ARRAY[]::BIGINT[]"]
                 case 4:
                     sqls = [
-                        "ALTER TABLE guilds ALTER COLUMN whitelist_characters SET DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890'",
+                        "ALTER TABLE guilds ALTER COLUMN whitelist_characters "
+                        "SET DEFAULT 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890'",
                         "UPDATE guilds \
-                            SET whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890' \
-                            WHERE whitelist_characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
+                            SET whitelist_characters = "
+                        "'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,1234567890' \
+                            WHERE whitelist_characters = "
+                        "'abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;''\"/\\|<>.,'",
                     ]
                 case 5:
                     db.log.info("Compatibility script #5 was moved to #7")
@@ -72,7 +74,9 @@ async def update_db(db: "Database"):
                     for r in records:
                         tc, uc, tw, uw, content = analyse_sample(r["content"])
                         await db.execute(
-                            "UPDATE data SET total_chars = $1, unique_chars = $2, total_words = $3, unique_words = $4, content = $5 WHERE id = $6 AND NOT EXISTS(SELECT 1 FROM data WHERE content = $5)",
+                            "UPDATE data SET total_chars = $1, unique_chars = $2, "
+                            "total_words = $3, unique_words = $4, content = $5 "
+                            "WHERE id = $6 AND NOT EXISTS(SELECT 1 FROM data WHERE content = $5)",
                             tc,
                             uc,
                             tw,
@@ -81,9 +85,7 @@ async def update_db(db: "Database"):
                             r["id"],
                         )
 
-                    db.log.warning(
-                        "Data correction successful, please retrain the model!"
-                    )
+                    db.log.warning("Data correction successful, please retrain the model!")
                 case 8:
                     sqls = [
                         "INSERT INTO stats (id) VALUES (0), (1), (2), (3), (4)",
@@ -94,25 +96,23 @@ async def update_db(db: "Database"):
                     db.log.info("Executing data correction algorithm #9...")
                     r: set[dict] = set(
                         await db.execute(
-                            "SELECT is_spam, total_chars, unique_chars, total_words, unique_words FROM data WHERE is_spam IS NOT NULL",
+                            "SELECT is_spam, total_chars, unique_chars, total_words, unique_words FROM data "
+                            "WHERE is_spam IS NOT NULL",
                             fetch_mode=FetchMode.ALL,
                         )
                     )
                     for record in r:
                         await db.execute(
-                            "UPDATE data SET is_spam = $1 WHERE total_chars = $2 AND unique_chars = $3 AND total_words = $4 AND unique_words = $5",
-                            *record.values()
+                            "UPDATE data SET is_spam = $1 "
+                            "WHERE total_chars = $2 AND unique_chars = $3 AND total_words = $4 AND unique_words = $5",
+                            *record.values(),
                         )
 
-                    db.log.warning(
-                        "Data correction successful, please retrain the model!"
-                    )
+                    db.log.warning("Data correction successful, please retrain the model!")
                 case 10:
                     sqls = ["ALTER TABLE guilds ADD COLUMN description TEXT"]
                 case 11:
-                    sqls = [
-                        "ALTER TABLE guilds ALTER COLUMN whitelist_characters TYPE VARCHAR(1024)"
-                    ]
+                    sqls = ["ALTER TABLE guilds ALTER COLUMN whitelist_characters TYPE VARCHAR(1024)"]
 
             for sql in sqls:
                 async with db._pool.acquire() as con:

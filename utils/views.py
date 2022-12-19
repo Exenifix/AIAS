@@ -113,9 +113,7 @@ class AntispamView(disnake.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @disnake.ui.button(
-        label="Not Spam", custom_id="not_spam", style=disnake.ButtonStyle.red
-    )
+    @disnake.ui.button(label="Not Spam", custom_id="not_spam", style=disnake.ButtonStyle.red)
     async def not_spam(self, _, inter: disnake.MessageInteraction):
         embed = inter.message.embeds[0]
         content = _get_field(embed, "Blocked Content")
@@ -130,7 +128,7 @@ class AntispamView(disnake.ui.View):
         )
         await inter.message.edit(view=None)
         await inter.send(
-            embed=SuccessEmbed(inter, f"Your report was submitted successfully!"),
+            embed=SuccessEmbed(inter, "Your report was submitted successfully!"),
             ephemeral=True,
         )
 
@@ -151,74 +149,54 @@ class ReportedNotSpamView(disnake.ui.View):
         await inter.bot.db.update_sample(content, True)
 
         await inter.message.edit(view=None)
-        await inter.send(
-            f"Successfully updated samples. Retraining required.", ephemeral=True
-        )
+        await inter.send("Successfully updated samples. Retraining required.", ephemeral=True)
 
-    @disnake.ui.button(
-        label="Ignore", custom_id="antispam_ignore", style=disnake.ButtonStyle.red
-    )
+    @disnake.ui.button(label="Ignore", custom_id="antispam_ignore", style=disnake.ButtonStyle.red)
     async def antispam_ignore(self, _, inter: disnake.MessageInteraction):
         await inter.message.edit(view=None)
-        await inter.send(f"Sample ignored.", ephemeral=True)
+        await inter.send("Sample ignored.", ephemeral=True)
 
 
 class UnbanView(disnake.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @disnake.ui.button(
-        label="Unban", custom_id="antiraid_unban", style=disnake.ButtonStyle.red
-    )
+    @disnake.ui.button(label="Unban", custom_id="antiraid_unban", style=disnake.ButtonStyle.red)
     async def unban(self, _, inter: disnake.MessageInteraction):
         if not inter.author.guild_permissions.ban_members:
-            await inter.send(
-                "You don't have permissions to perform this action.", ephemeral=True
-            )
+            await inter.send("You don't have permissions to perform this action.", ephemeral=True)
             return
 
         embed = inter.message.embeds[0]
         target_id = _fetch_target(embed)
         try:
-            await inter.guild.unban(
-                disnake.Object(target_id), reason=f"Manual unban by {inter.author}"
-            )
+            await inter.guild.unban(disnake.Object(target_id), reason=f"Manual unban by {inter.author}")
             await inter.message.edit(view=None)
-            await inter.send(f"Successfully unbanned this user.", ephemeral=True)
+            await inter.send("Successfully unbanned this user.", ephemeral=True)
         except disnake.Forbidden:
-            await inter.send(f"Bot is not allowed to unban this user.", ephemeral=True)
+            await inter.send("Bot is not allowed to unban this user.", ephemeral=True)
         except disnake.HTTPException:
-            await inter.send(f"Failed to unban this user.", ephemeral=True)
+            await inter.send("Failed to unban this user.", ephemeral=True)
 
 
 class UntimeoutView(disnake.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @disnake.ui.button(
-        label="Untimeout", custom_id="antiraid_untimeout", style=disnake.ButtonStyle.red
-    )
+    @disnake.ui.button(label="Untimeout", custom_id="antiraid_untimeout", style=disnake.ButtonStyle.red)
     async def unban(self, _, inter: disnake.MessageInteraction):
         if not inter.author.guild_permissions.moderate_members:
-            await inter.send(
-                "You have got no permissions to perform this action.", ephemeral=True
-            )
+            await inter.send("You have got no permissions to perform this action.", ephemeral=True)
             return
 
         embed = inter.message.embeds[0]
         target_id = _fetch_target(embed)
         member = await inter.guild.get_or_fetch_member(target_id)
         try:
-            await member.timeout(
-                duration=None, reason=f"Manual untimeout by {inter.author}"
-            )
+            await member.timeout(duration=None, reason=f"Manual untimeout by {inter.author}")
             await inter.message.edit(view=None)
-            await inter.send(
-                f"Successfully took off the timeout from this user.", ephemeral=True
-            )
+            await inter.send("Successfully took off the timeout from this user.", ephemeral=True)
         except disnake.Forbidden:
-            await inter.send(
-                f"Bot is not allowed to untimeout this user.", ephemeral=True
-            )
+            await inter.send("Bot is not allowed to untimeout this user.", ephemeral=True)
         except disnake.HTTPException:
-            await inter.send(f"Failed to untimeout this user.", ephemeral=True)
+            await inter.send("Failed to untimeout this user.", ephemeral=True)

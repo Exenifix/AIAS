@@ -8,7 +8,24 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/psf/black
-    rev: 22.6.0
+  - repo: local
     hooks:
       - id: black
+        name: black
+        language: python
+        pass_filenames: false
+        entry: poetry run black ./
+
+      - id: isort
+        name: isort
+        pass_filenames: false
+        language: python
+        entry: poetry run isort ./
+
+      - id: ruff
+        name: ruff
+        language: python
+        pass_filenames: false
+        entry: poetry run ruff ./
+        args:
+          - --fix

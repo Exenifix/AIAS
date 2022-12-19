@@ -12,28 +12,18 @@ class RulesManagement(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    async def cog_slash_command_check(
-        self, inter: disnake.ApplicationCommandInteraction
-    ):
+    async def cog_slash_command_check(self, inter: disnake.ApplicationCommandInteraction):
         return await is_automod_manager(self.bot, inter)
 
-    @commands.slash_command(
-        name="addrule", description="Adds a single rule to the rules storage."
-    )
-    async def addrule(
-        self, inter: disnake.ApplicationCommandInteraction, key: str, value: str
-    ):
+    @commands.slash_command(name="addrule", description="Adds a single rule to the rules storage.")
+    async def addrule(self, inter: disnake.ApplicationCommandInteraction, key: str, value: str):
         await self.bot.db.get_guild(inter.guild.id).add_rule(key, value)
         await inter.send(embed=SuccessEmbed(inter, "Successfully added a new rule."))
 
-    @commands.slash_command(
-        name="removerule", description="Removes a single rule from the rules storage."
-    )
+    @commands.slash_command(name="removerule", description="Removes a single rule from the rules storage.")
     async def removerule(self, inter: disnake.ApplicationCommandInteraction, key: str):
         await self.bot.db.get_guild(inter.guild.id).remove_rule(key)
-        await inter.send(
-            embed=SuccessEmbed(inter, f"Successfully removed rule `{key}`")
-        )
+        await inter.send(embed=SuccessEmbed(inter, f"Successfully removed rule `{key}`"))
 
 
 class Rules(commands.Cog):
@@ -48,22 +38,18 @@ class Rules(commands.Cog):
     async def listruleskeys(self, inter: disnake.ApplicationCommandInteraction):
         rules = await self.bot.db.get_guild(inter.guild.id).get_all_rules()
         if rules is None:
-            await inter.send(f"There are no rules.", ephemeral=True)
+            await inter.send("There are no rules.", ephemeral=True)
             return
 
         rules = sorted(rules.keys())
-        await inter.send(
-            embed=BaseEmbed(inter, "Rules", "`" + "`, `".join(rules) + "`")
-        )
+        await inter.send(embed=BaseEmbed(inter, "Rules", "`" + "`, `".join(rules) + "`"))
 
-    @commands.slash_command(
-        name="listrules", description="List all rules as an ephemeral message."
-    )
+    @commands.slash_command(name="listrules", description="List all rules as an ephemeral message.")
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def listrules(self, inter: disnake.ApplicationCommandInteraction):
         rules = await self.bot.db.get_guild(inter.guild.id).get_all_rules()
         if rules is None or len(rules) == 0:
-            await inter.send(f"There are no rules.", ephemeral=True)
+            await inter.send("There are no rules.", ephemeral=True)
             return
 
         rules = sorted_dict(rules)
@@ -79,9 +65,7 @@ class Rules(commands.Cog):
         for txt in texts:
             await inter.send(txt, ephemeral=True)
 
-    @commands.slash_command(
-        name="rule", description="Fetches contents of a single rule."
-    )
+    @commands.slash_command(name="rule", description="Fetches contents of a single rule.")
     @commands.cooldown(1, 10, commands.BucketType.member)
     async def select_rule(
         self,

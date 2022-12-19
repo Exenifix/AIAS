@@ -15,10 +15,7 @@ from utils.constants import MAX_AUTOSLOWMODE_CHANNELS_AMOUNT
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
 from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
-from utils.errors import (
-    AutoslowmodeChannelAlreadyExists,
-    AutoslowmodeChannelsLimitReached,
-)
+from utils.errors import AutoslowmodeChannelAlreadyExists, AutoslowmodeChannelsLimitReached
 from utils.filters.blacklist import preformat
 
 load_dotenv()
@@ -60,12 +57,10 @@ class Database:
         await self._pool.close()
         self.log.ok("Connection pool closed successfully")
 
-    async def execute(
-        self, query: str, *args, fetch_mode: FetchMode = FetchMode.NONE
-    ) -> None | list[dict] | dict | Any:
+    async def execute(self, query: str, *args, fetch_mode: FetchMode = FetchMode.NONE) -> None | list[dict] | dict | Any:
         async with self._pool.acquire() as con:
             con: asyncpg.Connection
-            match fetch_mode:
+            match fetch_mode:  # noqa: E999
                 case FetchMode.NONE:
                     return await con.execute(query, *args)
                 case FetchMode.VAL:
@@ -88,9 +83,7 @@ class Database:
         await update_db(self)
 
         # inserting Stat enums
-        existing_stats: list[int] = await self.execute(
-            "SELECT id FROM stats", fetch_mode=FetchMode.ROW
-        )
+        existing_stats: list[int] = await self.execute("SELECT id FROM stats", fetch_mode=FetchMode.ROW)
         for enum in Stat:
             if enum.value not in existing_stats:
                 await self.execute(
@@ -111,13 +104,9 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
 
     async def modify_message_score(self, id: int, upvote: bool):
         if upvote:
-            await self.execute(
-                "UPDATE data SET upvotes = upvotes + 1 WHERE id = $1", id
-            )
+            await self.execute("UPDATE data SET upvotes = upvotes + 1 WHERE id = $1", id)
         else:
-            await self.execute(
-                "UPDATE data SET downvotes = downvotes + 1 WHERE id = $1", id
-            )
+            await self.execute("UPDATE data SET downvotes = downvotes + 1 WHERE id = $1", id)
 
     async def mark_message_as_spam(self, content: str, is_spam: bool):
         await self.update_sample(content, is_spam)
@@ -132,12 +121,11 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         return record["content"]
 
     async def update_sample(self, content: str, is_spam: bool):
-        await self.execute(
-            "UPDATE data SET is_spam = $1 WHERE content = $2", is_spam, content
-        )
+        await self.execute("UPDATE data SET is_spam = $1 WHERE content = $2", is_spam, content)
         analysis_data = analyse_sample(content)
         exists: bool = await self.execute(
-            "SELECT EXISTS(SELECT 1 FROM data WHERE total_chars = $1 AND unique_chars = $2 AND total_words = $3 AND unique_words = $4)",
+            "SELECT EXISTS(SELECT 1 FROM data WHERE total_chars = $1 "
+            "AND unique_chars = $2 AND total_words = $3 AND unique_words = $4)",
             *analysis_data[:4],
             fetch_mode=FetchMode.VAL,
         )
@@ -146,7 +134,8 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
             return
 
         await self.execute(
-            "UPDATE data SET is_spam = $1 WHERE total_chars = $2 AND unique_chars = $3 AND total_words = $4 AND unique_words = $5",
+            "UPDATE data SET is_spam = $1 "
+            "WHERE total_chars = $2 AND unique_chars = $3 AND total_words = $4 AND unique_words = $5",
             is_spam,
             *analysis_data[:4],
         )
@@ -159,12 +148,13 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         )
 
     async def get_stats(self) -> str:
-        data = await self.execute(
-            "SELECT * FROM stats ORDER BY id", fetch_mode=FetchMode.ALL
-        )
+        data = await self.execute("SELECT * FROM stats ORDER BY id", fetch_mode=FetchMode.ALL)
         text = ""
         for record in data:
-            text += f"\n**{Stat(record['id']).name.replace('_', ' ').title()}:** `{record['applied_totally']}` total, `{record['applied_daily']}` daily"
+            text += (
+                f"\n**{Stat(record['id']).name.replace('_', ' ').title()}:** `{record['applied_totally']}` total, "
+                f"`{record['applied_daily']}` daily"
+            )
 
         return text
 
@@ -173,9 +163,7 @@ VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
         await self.update_daily_reset()
 
     async def get_daily_reset(self) -> datetime:
-        return await self.execute(
-            "SELECT value FROM resets WHERE id = 0", fetch_mode=FetchMode.VAL
-        )
+        return await self.execute("SELECT value FROM resets WHERE id = 0", fetch_mode=FetchMode.VAL)
 
     async def update_daily_reset(self):
         await self.execute("UPDATE resets SET value = CURRENT_TIMESTAMP WHERE id = 0")
@@ -238,11 +226,7 @@ class SubData:
 
     async def load(self):
         prefix: str = self.__class__.__name__.replace("Data", "").lower() + "_"
-        data = await self._guild._select(
-            ", ".join(
-                prefix + slot for slot in self.__slots__ if not slot.startswith("_")
-            )
-        )
+        data = await self._guild._select(", ".join(prefix + slot for slot in self.__slots__ if not slot.startswith("_")))
         for k, v in data.items():
             setattr(self, k.replace(prefix, ""), v)
 
@@ -298,25 +282,17 @@ class GuildData:
         self._db = _db
 
     async def _validate_existence(self):
-        await self._db.execute(
-            "INSERT INTO guilds (id) VALUES ($1) ON CONFLICT DO NOTHING", self.id
-        )
+        await self._db.execute("INSERT INTO guilds (id) VALUES ($1) ON CONFLICT DO NOTHING", self.id)
 
     async def _select(self, args: str, fetch_mode: FetchMode = FetchMode.ROW):
         args_amount = len(args.split(","))
         if fetch_mode == FetchMode.VAL and args_amount > 1:
-            self._db.log.warning(
-                "Selection of multiple fields with FetchMode.VAL: %s", args
-            )
+            self._db.log.warning("Selection of multiple fields with FetchMode.VAL: %s", args)
         elif fetch_mode != FetchMode.VAL and args_amount <= 1:
-            self._db.log.warning(
-                "Selection of single field with %s: %s:", fetch_mode, args
-            )
+            self._db.log.warning("Selection of single field with %s: %s:", fetch_mode, args)
 
         await self._validate_existence()
-        return await self._db.execute(
-            f"SELECT {args} FROM guilds WHERE id = $1", self.id, fetch_mode=fetch_mode
-        )
+        return await self._db.execute(f"SELECT {args} FROM guilds WHERE id = $1", self.id, fetch_mode=fetch_mode)
 
     async def _update(self, **kwargs):
         text = ""
@@ -325,9 +301,7 @@ class GuildData:
 
         text = text[:-2]
         await self._validate_existence()
-        await self._db.execute(
-            f"UPDATE guilds SET {text} WHERE id = $1", self.id, *kwargs.values()
-        )
+        await self._db.execute(f"UPDATE guilds SET {text} WHERE id = $1", self.id, *kwargs.values())
 
     async def get_prefixes(self) -> list[str]:
         return await self._select("prefixes", FetchMode.VAL)
@@ -406,9 +380,7 @@ class GuildData:
             raise errors.NotIgnored(value)
 
     async def add_blacklist_word(self, value: str, mode: BlacklistMode):
-        current: list[str] = await self._select(
-            "blacklist_" + mode.value, FetchMode.VAL
-        )
+        current: list[str] = await self._select("blacklist_" + mode.value, FetchMode.VAL)
 
         if value in current:
             raise errors.WordAlreadyExists(value, mode.value)
@@ -420,9 +392,7 @@ class GuildData:
             raise errors.WordsThresholdExceeded()
 
     async def addmany_blacklist_words(self, words: list[str], mode: BlacklistMode):
-        current: set[str] = set(
-            await self._select("blacklist_" + mode.value, FetchMode.VAL)
-        )
+        current: set[str] = set(await self._select("blacklist_" + mode.value, FetchMode.VAL))
         words = set(map(lambda s: preformat(s, mode), words))
         if "" in words:
             words.remove("")
@@ -434,9 +404,7 @@ class GuildData:
             raise errors.WordsThresholdExceeded()
 
     async def remove_blacklist_word(self, value: str, mode: BlacklistMode):
-        current: list[str] = await self._select(
-            "blacklist_" + mode.value, FetchMode.VAL
-        )
+        current: list[str] = await self._select("blacklist_" + mode.value, FetchMode.VAL)
         try:
             current.remove(value)
             await self._update(**{"blacklist_" + mode.value: current})
@@ -445,9 +413,7 @@ class GuildData:
 
     async def clear_blacklist(self, mode: Optional[BlacklistMode] = None):
         if mode is None:
-            await self._update(
-                blacklist_common=[], blacklist_wild=[], blacklist_super=[]
-            )
+            await self._update(blacklist_common=[], blacklist_wild=[], blacklist_super=[])
         else:
             await self._update(**{"blacklist_" + mode.value: []})
 
@@ -499,9 +465,7 @@ class GuildData:
         """Returns
         ----------
         `enabled, ignored = await guild.get_nickfilter_data()`"""
-        return tuple(
-            (await self._select("nickfilter_enabled, nickfilter_ignored")).values()
-        )
+        return tuple((await self._select("nickfilter_enabled, nickfilter_ignored")).values())
 
     async def set_nickfilter_enabled(self, value: bool):
         await self._update(nickfilter_enabled=value)
@@ -535,9 +499,7 @@ class GuildData:
             raise errors.RuleAlreadyExists(key)
 
     async def remove_rule(self, key: str):
-        await self._db.execute(
-            "DELETE FROM rules WHERE id = $1 AND rule_key = $2", self.id, key
-        )
+        await self._db.execute("DELETE FROM rules WHERE id = $1 AND rule_key = $2", self.id, key)
         autocomplete.invalidate_rules(self.id)
 
     async def get_rule(self, key: str) -> str:

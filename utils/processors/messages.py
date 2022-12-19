@@ -21,14 +21,10 @@ class MessageQueueProcessor:
 
     def add(self, message: disnake.Message) -> Queue[disnake.Message] | Literal[False]:
         if message.guild.id not in self.data:
-            self.data[message.guild.id] = {
-                message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
-            }
+            self.data[message.guild.id] = {message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)}
             return False
         elif message.author.id not in self.data[message.guild.id]:
-            self.data[message.guild.id][message.author.id] = Queue(
-                [message], max_size=MAX_SPAM_QUEUE_SIZE
-            )
+            self.data[message.guild.id][message.author.id] = Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
             return False
         else:
             queue = self.data[message.guild.id][message.author.id]
@@ -198,9 +194,7 @@ This member will be muted in **{warnings} warnings.**",
                     delete_after=5,
                 )
             log = await guild.get_logger(self.bot)
-            await log.log_blacklist_deletion(
-                message.author, message.channel, message.content, expr
-            )
+            await log.log_blacklist_deletion(message.author, message.channel, message.content, expr)
             return True
         else:
             return await self.queue_processor.process(message)
@@ -215,11 +209,7 @@ class WhitelistProcessor:
     async def process(self, message: disnake.Message) -> bool:
         guild_data = self.bot.db.get_guild(message.guild.id)
         data = await guild_data.get_whitelist_data()
-        if (
-            not data.enabled
-            or message.channel.id in data.ignored
-            or any(r.id in data.ignored for r in message.author.roles)
-        ):
+        if not data.enabled or message.channel.id in data.ignored or any(r.id in data.ignored for r in message.author.roles):
             return False
 
         is_fonted, chars = contains_fonts(data.characters, message.content)
@@ -232,15 +222,14 @@ class WhitelistProcessor:
                 embed=WarningEmbed(
                     message,
                     title="Fonts Detected",
-                    description=f"{message.author.mention}, your message was removed because it contains blacklisted symbols.\n\
-Blocked symbols: `{'`, `'.join(chars)}`.",
+                    description=f"{message.author.mention}, your message was removed because it contains blacklisted"
+                    " symbols.\n"
+                    f"Blocked symbols: `{'`, `'.join(chars)}`.",
                 ),
                 delete_after=5,
             )
             log = await guild_data.get_logger(self.bot)
-            await log.log_single_deletion(
-                message.author, message.channel, message.content
-            )
+            await log.log_single_deletion(message.author, message.channel, message.content)
             return True
 
         return False

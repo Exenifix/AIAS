@@ -14,13 +14,7 @@ from exencolorlogs import FileLogger
 from ai import predictor
 from ai.train import train as train_ai
 from utils import embeds
-from utils.constants import (
-    EMOJIS,
-    LOG_CHANNEL_ID,
-    OWNER_ID,
-    TRAIN_GUILD_IDS,
-    WARNINGS_RESET_INTERVAL,
-)
+from utils.constants import EMOJIS, LOG_CHANNEL_ID, OWNER_ID, TRAIN_GUILD_IDS, WARNINGS_RESET_INTERVAL
 from utils.datamodels import Database
 from utils.views import AntispamView, ReportedNotSpamView, UnbanView, UntimeoutView
 
@@ -41,9 +35,7 @@ class Bot(commands.InteractionBot):
             test_guilds = TRAIN_GUILD_IDS
         super().__init__(
             intents=intents,
-            allowed_mentions=disnake.AllowedMentions(
-                everyone=False, users=True, roles=False, replied_user=True
-            ),
+            allowed_mentions=disnake.AllowedMentions(everyone=False, users=True, roles=False, replied_user=True),
             test_guilds=test_guilds,
         )
 
@@ -87,9 +79,7 @@ class Bot(commands.InteractionBot):
         load_dotenv()
         token = getenv("TOKEN")
         if token is None or token == "":
-            self.log.critical(
-                ".env file filled improperly. Please see README.md for more information."
-            )
+            self.log.critical(".env file filled improperly. Please see README.md for more information.")
             sys.exit(1)
 
         super().run(token)
@@ -134,9 +124,7 @@ class Bot(commands.InteractionBot):
 
     def auto_setup(self, module_name: str):
         module = sys.modules[module_name]
-        members = inspect.getmembers(
-            module, lambda x: inspect.isclass(x) and issubclass(x, commands.Cog)
-        )
+        members = inspect.getmembers(module, lambda x: inspect.isclass(x) and issubclass(x, commands.Cog))
         for member in members:
             self.add_cog(member[1](self))
 
@@ -177,9 +165,7 @@ class WarningsManager:
         guild_data = self.bot.db.get_guild(message.guild.id)
         duration, threshold = await guild_data.get_warnings_data()
         if current_warnings >= threshold and message.author.current_timeout is None:
-            await message.channel.send(
-                f"**{self.bot.sys_emojis.checkmark} {message.author.mention}, enjoy your mute!**"
-            )
+            await message.channel.send(f"**{self.bot.sys_emojis.checkmark} {message.author.mention}, enjoy your mute!**")
             await message.author.timeout(
                 duration=timedelta(minutes=duration),
                 reason="Warnings threshold exceed.",

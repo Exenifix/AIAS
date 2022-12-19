@@ -27,16 +27,12 @@ class Training(commands.Cog):
             while res not in (ViewResponse.EXIT, ViewResponse.TIMEOUT):
                 content = await self.bot.db.get_unmarked_message()
                 if content is None:
-                    await inter.send(
-                        f"No more records to analyse left!", ephemeral=True
-                    )
+                    await inter.send("No more records to analyse left!", ephemeral=True)
                     return
 
                 view = PhraseProcessingView(inter.author.id)
                 await inter.send(
-                    embed=disnake.Embed(
-                        title="Is this message a spam?", description=f"{content[:1000]}"
-                    ).add_field(
+                    embed=disnake.Embed(title="Is this message a spam?", description=f"{content[:1000]}").add_field(
                         "AI Prediction",
                         "YES" if is_spam(content) else "NO",
                         inline=False,
@@ -52,13 +48,11 @@ class Training(commands.Cog):
                     await self.bot.db.mark_message_as_spam(content, False)
 
                 elif res == ViewResponse.EXIT:
-                    await inter.send(f"Messages validated!", ephemeral=True)
+                    await inter.send("Messages validated!", ephemeral=True)
                     break
 
                 elif res == ViewResponse.TIMEOUT:
-                    await inter.send(
-                        f"{inter.author.mention} timeout exceeded", ephemeral=True
-                    )
+                    await inter.send(f"{inter.author.mention} timeout exceeded", ephemeral=True)
                     break
         except Exception as e:
             await inter.send(
@@ -73,13 +67,9 @@ class Training(commands.Cog):
         guild_ids=TRAIN_GUILD_IDS,
     )
     @commands.is_owner()
-    async def overwrite(
-        self, inter: disnake.ApplicationCommandInteraction, content: str, spam: bool
-    ):
+    async def overwrite(self, inter: disnake.ApplicationCommandInteraction, content: str, spam: bool):
         await self.bot.db.update_sample(content, spam)
-        await inter.send(
-            embed=SuccessEmbed(inter, "Successfully overwrote this sample!")
-        )
+        await inter.send(embed=SuccessEmbed(inter, "Successfully overwrote this sample!"))
 
 
 def setup(bot: Bot):

@@ -48,8 +48,7 @@ class AntiraidProcessor:
 
         if (
             len(queue) >= antiraid.members_limit
-            and (queue.getright().joined_at - queue.getleft().joined_at).seconds
-            < antiraid.join_interval
+            and (queue.getright().joined_at - queue.getleft().joined_at).seconds < antiraid.join_interval
         ):
             log = await guild_data.get_logger(self.bot)
             for member in queue:

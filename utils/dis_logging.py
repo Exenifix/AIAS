@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 import disnake
 from exencolorlogs import Logger
@@ -77,21 +77,16 @@ class GuildLogger:
             None,
         )
         embed.add_field("Target", f"**{target}** {target.mention}\n`{target.id}`")
-        match action:
+        match action:  # noqa: E999
             case ActionType.SINGLE_DELETION:
                 embed.description = f"A message was deleted from {channel.mention}."
-                embed.add_field(
-                    "Blocked Content", f"```{blocked_content}```", inline=False
-                )
+                embed.add_field("Blocked Content", f"```{blocked_content}```", inline=False)
 
             case ActionType.BLACKLIST_DELETION:
                 embed.description = (
-                    f"A message was deleted from {channel.mention} because it contained blacklisted "
-                    "expressions."
+                    f"A message was deleted from {channel.mention} because it contained blacklisted " "expressions."
                 )
-                embed.add_field(
-                    "Blocked Content", f"```{blocked_content}```", inline=False
-                )
+                embed.add_field("Blocked Content", f"```{blocked_content}```", inline=False)
                 if filtered_expression is not None:
                     embed.add_field("Filtered", filtered_expression)
 
@@ -108,9 +103,7 @@ class GuildLogger:
             case ActionType.ANTISPAM:
                 view = AntispamView()
                 embed.description = f"A message was deleted from {channel.mention}."
-                embed.add_field(
-                    "Blocked Content", f"```{blocked_content}```", inline=False
-                )
+                embed.add_field("Blocked Content", f"```{blocked_content}```", inline=False)
                 await self.log_channel.send(embed=embed, view=view)
                 return
 
@@ -142,13 +135,9 @@ class GuildLogger:
         try:
             await self.log_channel.send(embed=embed)
         except disnake.Forbidden:
-            self.log.warning(
-                "Failed to complete logging action in guild %s", self.guild
-            )
+            self.log.warning("Failed to complete logging action in guild %s", self.guild)
 
-    async def log_single_deletion(
-        self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str
-    ):
+    async def log_single_deletion(self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str):
         await self._log_action(
             ActionType.SINGLE_DELETION,
             target,
@@ -169,9 +158,7 @@ class GuildLogger:
             deleted_messages=deleted_messages,
         )
 
-    async def log_timeout(
-        self, target: disnake.Member, timeout_duration: int, is_antiraid: bool = False
-    ):
+    async def log_timeout(self, target: disnake.Member, timeout_duration: int, is_antiraid: bool = False):
         await self._log_action(
             ActionType.TIMEOUT,
             target,
@@ -179,9 +166,7 @@ class GuildLogger:
             is_antiraid=is_antiraid,
         )
 
-    async def log_nick_change(
-        self, target: disnake.Member, old_nickname: str, new_nickname: str
-    ):
+    async def log_nick_change(self, target: disnake.Member, old_nickname: str, new_nickname: str):
         await self._log_action(
             ActionType.NICK_CHANGE,
             target,
@@ -189,9 +174,7 @@ class GuildLogger:
             new_nickname=new_nickname,
         )
 
-    async def log_antispam(
-        self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str
-    ):
+    async def log_antispam(self, target: disnake.Member, channel: disnake.TextChannel, blocked_content: str):
         await self._log_action(
             ActionType.ANTISPAM,
             target,

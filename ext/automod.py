@@ -9,11 +9,7 @@ from utils.enums import Stat
 from utils.filters.blacklist import is_blacklisted
 from utils.nicknames import generate_random_nick
 from utils.processors.antiraid import AntiraidProcessor
-from utils.processors.messages import (
-    AntiSpamProcessor,
-    BlacklistProcessor,
-    WhitelistProcessor,
-)
+from utils.processors.messages import AntiSpamProcessor, BlacklistProcessor, WhitelistProcessor
 from utils.utils import try_send
 
 
@@ -76,8 +72,7 @@ class Automod(commands.Cog):
         except disnake.Forbidden:
             if (
                 message.guild.id not in self.permission_warnings
-                or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
-                >= 120
+                or (datetime.now() - self.permission_warnings[message.guild.id]).seconds >= 120
             ):
                 self.permission_warnings[message.guild.id] = datetime.now()
                 try:
