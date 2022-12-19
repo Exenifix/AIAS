@@ -2,7 +2,7 @@ import inspect
 import sys
 
 import exencolor
-from disnake import Forbidden, Interaction
+from disnake import Forbidden, Interaction, NotFound
 from disnake.ext import commands
 
 from utils.constants import MAX_AUTOSLOWMODE_CHANNELS_AMOUNT
@@ -126,6 +126,7 @@ known_exceptions.extend(
         commands.BotMissingPermissions,
         commands.MissingRole,
         commands.MissingAnyRole,
+        NotFound,
         Forbidden,
     ]
 )
@@ -142,13 +143,16 @@ default_answers = {
     commands.MissingRole: "You need `{error.missing_role}` role to use this command",
     commands.MissingAnyRole: "You need any of the following roles to use this command:\n\
 `{missing_roles}`",
-    Forbidden: "Bot does not have permission to do this. It is probably missing one of required permissions, check that the bot has all required permissions in this channel",
+    NotFound: "Bot was unable to locate required message",
+    Forbidden: "Bot does not have permission to do this. It is probably missing one of required permissions, "
+    "check that the bot has all required permissions in this channel",
 }
 
 
 def get_error_message(
     ctx: commands.Context | Interaction, error: commands.CommandError
 ):
+    error = getattr(error, "original", error)
     if type(error) not in known_exceptions:
         return UNKNOWN
 
