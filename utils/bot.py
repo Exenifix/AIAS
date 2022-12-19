@@ -9,7 +9,7 @@ from os.path import exists as path_exists
 import disnake
 from disnake.ext import commands, tasks
 from dotenv import load_dotenv
-from exencolorlogs import Logger
+from exencolorlogs import FileLogger
 
 from ai import predictor
 from ai.train import train as train_ai
@@ -33,7 +33,7 @@ class Bot(commands.InteractionBot):
     def __init__(self):
         intents = disnake.Intents.all()
         intents.presences = False
-        self.log = Logger("BOT")
+        self.log = FileLogger("BOT")
         test_guilds = None
         self.test_version = bool(os.getenv("TEST_VERSION", 0))
         if self.test_version:

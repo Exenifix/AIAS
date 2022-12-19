@@ -7,7 +7,7 @@ from typing import Any, Optional
 import asyncpg
 import disnake
 from dotenv import load_dotenv
-from exencolorlogs import Logger
+from exencolorlogs import FileLogger
 
 from ai.analyser import analyse_sample
 from utils import autocomplete, errors
@@ -36,12 +36,10 @@ warnings_data = namedtuple("warnings_data", ["timeout_duration", "warnings_thres
 
 
 class Database:
-    log: Logger
     _pool: asyncpg.Pool
-    _connection_config: dict[str, Any]
 
     def __init__(self, **connection_config):
-        self.log = Logger("DB")
+        self.log = FileLogger("DB")
         self._connection_config = {
             "database": DATABASE,
             "host": HOST or "127.0.0.1",
