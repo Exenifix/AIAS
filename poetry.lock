@@ -132,7 +132,7 @@ python-versions = ">=3.10,<4.0"
 
 [[package]]
 name = "exencolorlogs"
-version = "1.1"
+version = "1.1.1"
 description = "A module for nice looking colored logs."
 category = "main"
 optional = false
@@ -536,8 +536,8 @@ exencolor = [
     {file = "exencolor-1.1.3.tar.gz", hash = "sha256:248e12759db8c5c6d9a120699fdda61932b41c36f984fccfdbcd7c03ad1ae5fa"},
 ]
 exencolorlogs = [
-    {file = "exencolorlogs-1.1-py3-none-any.whl", hash = "sha256:7cf478157febd661efd55af79e6557c922f7516361b189f92629398b0d8da9a4"},
-    {file = "exencolorlogs-1.1.tar.gz", hash = "sha256:5df5ad9fe37daff3f611761004c7e1d7641e13a10c6a17b95aa62b27aadef8de"},
+    {file = "exencolorlogs-1.1.1-py3-none-any.whl", hash = "sha256:a070e63e68f4794ea4c8bec039bcae93da40e7880533635a0a3f386edcbd6e8f"},
+    {file = "exencolorlogs-1.1.1.tar.gz", hash = "sha256:e61f7d9bbeacebd869ccb3dd1096b77ecb823cd72250584656e30e52774c5748"},
 ]
 filelock = [
     {file = "filelock-3.8.2-py3-none-any.whl", hash = "sha256:8df285554452285f79c035efb0c861eb33a4bcfa5b7a137016e32e6a90f9792c"},
