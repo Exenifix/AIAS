@@ -10,17 +10,13 @@ from dotenv import load_dotenv
 from exencolorlogs import FileLogger
 
 from ai.analyser import analyse_sample
-from utils import autocomplete, errors
+from utils import autocomplete, env, errors
 from utils.constants import MAX_AUTOSLOWMODE_CHANNELS_AMOUNT
 from utils.db_updater import update_db
 from utils.dis_logging import GuildLogger
 from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
 from utils.errors import AutoslowmodeChannelAlreadyExists, AutoslowmodeChannelsLimitReached
 from utils.filters.blacklist import preformat
-
-if DATABASE is None:
-    print(".env file not filled up properly")
-    sys.exit(1)
 
 warnings_data = namedtuple("warnings_data", ["timeout_duration", "warnings_threshold"])
 
@@ -31,12 +27,12 @@ class Database:
     def __init__(self, **connection_config):
         self.log = FileLogger("DB")
         self._connection_config = {
-            "database": DATABASE,
-            "host": HOST or "127.0.0.1",
-            "user": USER,
+            "database": env.db.DATABASE,
+            "host": env.db.HOST or "127.0.0.1",
+            "user": env.db.USER,
         }
-        if PASSWORD is not None:
-            self._connection_config["password"] = PASSWORD
+        if env.db.PASSWORD is not None:
+            self._connection_config["password"] = env.db.PASSWORD
 
         self._connection_config.update(connection_config)
 
