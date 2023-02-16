@@ -1,12 +1,9 @@
-import sys
 from collections import namedtuple
 from datetime import datetime
-from os import getenv
 from typing import Any, Optional
 
 import asyncpg
 import disnake
-from dotenv import load_dotenv
 from exencolorlogs import FileLogger
 
 from ai.analyser import analyse_sample
