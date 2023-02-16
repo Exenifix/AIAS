@@ -9,6 +9,7 @@ from utils.checks import is_automod_manager
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed, WarningEmbed
 from utils.enums import AntiraidPunishment, BlacklistMode, ViewResponse
 from utils.filters.blacklist import preformat
+from utils.utils import delete_and_preserve
 from utils.views import BaseView, Button, ConfirmationView
 
 
@@ -441,7 +442,7 @@ class Automation(commands.Cog):
     @commands.message_command(name="Delete and Warn")
     async def delete_and_warn(self, inter: disnake.MessageCommandInteraction, message: disnake.Message):
         await inter.response.defer(ephemeral=True)
-        await message.delete()
+        await delete_and_preserve(message)
         warnings = await self.bot.warnings.add_warning(message)
         if warnings != -1:
             await inter.channel.send(

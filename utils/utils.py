@@ -2,7 +2,9 @@ from collections import deque
 from typing import Generic, Iterator, Optional, Sequence, TypeVar
 
 import disnake
-from disnake import Member
+from disnake import Member, Message
+
+from utils.embeds import BaseEmbed
 
 T = TypeVar("T")
 
@@ -77,3 +79,15 @@ def split_text(text: str, symbols_per_string: Optional[int] = 100) -> list[str]:
 def sorted_dict(d: dict) -> dict:
     keys = sorted(d.keys())
     return {k: d[k] for k in keys}
+
+
+async def delete_and_preserve(message: Message):
+    await message.delete()
+    try:
+        await message.author.send(
+            embed=BaseEmbed(
+                message, None, "Hey, seems like your message got deleted, so I preserved its contents"
+            ).add_field("Message", message.content)
+        )
+    except disnake.HTTPException:
+        pass

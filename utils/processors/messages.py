@@ -8,7 +8,7 @@ from utils.constants import MAX_SPAM_QUEUE_SIZE
 from utils.embeds import WarningEmbed
 from utils.filters.blacklist import is_blacklisted
 from utils.filters.whitelist import contains_fonts
-from utils.utils import Queue
+from utils.utils import Queue, delete_and_preserve
 
 
 class MessageQueueProcessor:
@@ -100,7 +100,7 @@ class AntiSpamProcessor:
             return False
 
         if is_spam(message.content):
-            await message.delete()
+            await delete_and_preserve(message)
             warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
                 await message.channel.send(
@@ -175,7 +175,7 @@ class BlacklistProcessor:
         is_curse, expr = is_blacklisted(blacklist, message.content)
 
         if is_curse:
-            await message.delete()
+            await delete_and_preserve(message)
             warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
                 embed = WarningEmbed(
@@ -215,7 +215,7 @@ class WhitelistProcessor:
         is_fonted, chars = contains_fonts(data.characters, message.content)
 
         if is_fonted:
-            await message.delete()
+            await delete_and_preserve(message)
             if len(chars) > 10:
                 chars = chars[:10]
             await message.channel.send(
