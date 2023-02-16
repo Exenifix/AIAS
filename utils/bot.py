@@ -1,19 +1,17 @@
 import inspect
-import os
 import sys
 import traceback
 from datetime import datetime, timedelta
-from os import getenv, mkdir
+from os import mkdir
 from os.path import exists as path_exists
 
 import disnake
 from disnake.ext import commands, tasks
-from dotenv import load_dotenv
 from exencolorlogs import FileLogger
 
 from ai import predictor
 from ai.train import train as train_ai
-from utils import embeds
+from utils import embeds, env
 from utils.constants import EMOJIS, LOG_CHANNEL_ID, OWNER_ID, TRAIN_GUILD_IDS, WARNINGS_RESET_INTERVAL
 from utils.datamodels import Database
 from utils.views import AntispamView, ReportedNotSpamView, UnbanView, UntimeoutView
@@ -26,10 +24,10 @@ class Bot(commands.InteractionBot):
 
     def __init__(self):
         intents = disnake.Intents.all()
-        intents.presences = False
+        intents.presences = False  # type: ignore
         self.log = FileLogger("BOT")
         test_guilds = None
-        self.test_version = bool(os.getenv("TEST_VERSION", 0))
+        self.test_version = env.main.TEST_VERSION
         if self.test_version:
             self.log.warning("Running on TEST VERSION")
             test_guilds = TRAIN_GUILD_IDS
@@ -76,12 +74,7 @@ class Bot(commands.InteractionBot):
         await super().close()
 
     def run(self):
-        load_dotenv()
-        token = getenv("TOKEN")
-        if token is None or token == "":
-            self.log.critical(".env file filled improperly. Please see README.md for more information.")
-            sys.exit(1)
-
+        token = env.main.TOKEN
         super().run(token)
 
     def load_emojis(self):

@@ -1,5 +1,4 @@
 import asyncio
-import os
 from contextlib import redirect_stdout
 from datetime import datetime
 from io import StringIO
@@ -11,6 +10,7 @@ from dotenv import load_dotenv
 
 from ai import predictor
 from ai.train import train as train_ai
+from utils import env
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
@@ -121,7 +121,7 @@ class SystemLoops(commands.Cog):
         self.last_amount_submitted: int | None = None
 
         load_dotenv()
-        self.tgg_token = os.getenv("TOPGG_TOKEN")
+        self.tgg_token = env.main.TOPGG_TOKEN
 
         if not self.bot.test_version:
             self.presence_updater.start()
