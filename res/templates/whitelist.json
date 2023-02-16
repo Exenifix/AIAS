@@ -1,4 +1,4 @@
 {
-  "standard": "abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'’\"/\\|<>.,1234567890",
-  "cyrillic": "абвгдеёжхийклмнопрстуфхцчшщъыьэюяabcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'’\"/\\|<>.,1234567890"
+  "cyrillic": "\u0430\u0431\u0432\u0433\u0434\u0435\u0451\u0436\u0445\u0438\u0439\u043a\u043b\u043c\u043d\u043e\u043f\u0440\u0441\u0442\u0443\u0444\u0445\u0446\u0447\u0448\u0449\u044a\u044b\u044c\u044d\u044e\u044fabcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'\u2019\"/\\|<>.,1234567890",
+  "standard": "abcdefghijklmnopqrstuvwxyz!@#$%^&*(){}[]<>-_=+?~`:;'\u2019\"/\\|<>.,1234567890"
 }

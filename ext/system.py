@@ -1,5 +1,4 @@
 import asyncio
-import os
 from contextlib import redirect_stdout
 from datetime import datetime
 from io import StringIO
@@ -11,6 +10,7 @@ from dotenv import load_dotenv
 
 from ai import predictor
 from ai.train import train as train_ai
+from utils import env
 from utils.bot import Bot
 from utils.constants import TRAIN_GUILD_IDS
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
@@ -25,9 +25,7 @@ class SystemListeners(commands.Cog):
     @commands.Cog.listener("on_slash_command_error")
     @commands.Cog.listener("on_user_command_error")
     @commands.Cog.listener("on_message_command_error")
-    async def error_handler(
-        self, inter: disnake.Interaction, error: commands.CommandError
-    ):
+    async def error_handler(self, inter: disnake.Interaction, error: commands.CommandError):
         msg = get_error_message(inter, error)
 
         if msg is UNKNOWN:
@@ -44,19 +42,14 @@ class SystemListeners(commands.Cog):
             )
             raise error
 
-        await inter.send(
-            embed=ErrorEmbed(
-                inter, description=f"Sorry, an error occurred:\n```py\n{msg}```"
-            )
-        )
+        await inter.send(embed=ErrorEmbed(inter, description=f"Sorry, an error occurred:\n```py\n{msg}```"))
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: disnake.Guild):
-        self.bot.log.info(
-            "Joined guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds)
-        )
+        self.bot.log.info("Joined guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds))
         await self.bot.db.execute(
-            "INSERT INTO guilds (id, description) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET description = $2 WHERE guilds.id = $1",
+            "INSERT INTO guilds (id, description) VALUES ($1, $2) "
+            "ON CONFLICT (id) DO UPDATE SET description = $2 WHERE guilds.id = $1",
             guild.id,
             guild.description,
         )
@@ -71,21 +64,21 @@ class SystemListeners(commands.Cog):
         # attempt to find general and send a message to there
         embed = disnake.Embed(
             color=0x00FF00,
-            title=f":wave: Thanks for Inviting AIAS!",
-            description="""Please complete bot setup as described [here](https://github.com/Exenifix/AIAS/blob/master/README.md). \
+            title=":wave: Thanks for Inviting AIAS!",
+            description="""Please complete bot setup as described \
+            [here](https://github.com/Exenifix/AIAS/blob/master/README.md). \
 Notice that **antispam is already enabled.**\n
 Our bot uses AI to detect spam and may mistake sometimes, although it is trained on > 10k samples. \
-If it blocks the message that is not spam, please lead to log channel (if you have setup it) and press **Not Spam** button. \
-If bot didn't block spam message, use message command **Delete and Warn**. This will submit a sample to us for further review.\n
+If it blocks the message that is not spam, please lead to log channel \
+(if you have setup it) and press **Not Spam** button. \
+If bot didn't block spam message, use message command **Delete and Warn**. \
+This will submit a sample to us for further review.\n
 Once again, thanks for inviting AIAS! We hope it will help you improve moderation in your server!""",
         )
         channels_priority = ["general", "chat"]
         for name in channels_priority:
             for channel in guild.text_channels:
-                if (
-                    name in channel.name
-                    and channel.permissions_for(channel.guild.me).send_messages
-                ):
+                if name in channel.name and channel.permissions_for(channel.guild.me).send_messages:
                     try:
                         await channel.send(embed=embed)
                         return
@@ -103,9 +96,7 @@ Once again, thanks for inviting AIAS! We hope it will help you improve moderatio
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):
-        self.bot.log.info(
-            "Left guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds)
-        )
+        self.bot.log.info("Left guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds))
         await self.bot.log_channel.send(
             embed=BaseEmbed(
                 self.bot.owner,
@@ -130,7 +121,7 @@ class SystemLoops(commands.Cog):
         self.last_amount_submitted: int | None = None
 
         load_dotenv()
-        self.tgg_token = os.getenv("TOPGG_TOKEN")
+        self.tgg_token = env.main.TOPGG_TOKEN
 
         if not self.bot.test_version:
             self.presence_updater.start()
@@ -143,16 +134,12 @@ class SystemLoops(commands.Cog):
 
         guilds_count = len(self.bot.guilds)
         await self.bot.change_presence(
-            activity=disnake.Activity(
-                type=disnake.ActivityType.watching, name=f"{guilds_count} guilds..."
-            )
+            activity=disnake.Activity(type=disnake.ActivityType.watching, name=f"{guilds_count} guilds...")
         )
         if self.last_amount_submitted != guilds_count:
-            async with aiohttp.ClientSession(
-                headers={"Authorization": self.tgg_token}
-            ) as session:
+            async with aiohttp.ClientSession(headers={"Authorization": self.tgg_token}) as session:
                 r = await session.post(
-                    f"https://top.gg/api/bots/962093056910323743/stats",
+                    "https://top.gg/api/bots/962093056910323743/stats",
                     json={"server_count": guilds_count},
                 )
                 if r.status != 200:
@@ -163,9 +150,7 @@ class SystemLoops(commands.Cog):
                         resp.get("error", resp),
                     )
                 else:
-                    self.bot.log.ok(
-                        "Successfully updated top.gg stats with %s", guilds_count
-                    )
+                    self.bot.log.ok("Successfully updated top.gg stats with %s", guilds_count)
                     self.last_amount_submitted = guilds_count
 
     @presence_updater.before_loop
@@ -177,9 +162,7 @@ class SystemCommands(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    async def cog_slash_command_check(
-        self, inter: disnake.ApplicationCommandInteraction
-    ) -> bool:
+    async def cog_slash_command_check(self, inter: disnake.ApplicationCommandInteraction) -> bool:
         is_owner = await self.bot.is_owner(inter.author)
         if is_owner:
             return True
@@ -243,30 +226,22 @@ asyncio.run_coroutine_threadsafe(asyncf(), asyncio.get_running_loop())"""
         fetch_mode = FetchMode(fetch_mode)
         r = await self.bot.db.execute(query, fetch_mode=fetch_mode)
         if fetch_mode == FetchMode.NONE or r is None:
-            await inter.send(f"Query was executed successfully with no return.")
+            await inter.send("Query was executed successfully with no return.")
 
         elif fetch_mode == FetchMode.VAL:
-            await inter.send(
-                f"Query was executed successfully with return: ```py\n{r}```"
-            )
+            await inter.send(f"Query was executed successfully with return: ```py\n{r}```")
 
         elif fetch_mode == FetchMode.ROW:
             text = "\t".join(map(str, r.values()))
-            await inter.send(
-                f"Query was executed successfully with return: ```py\n{text}```"
-            )
+            await inter.send(f"Query was executed successfully with return: ```py\n{text}```")
 
         elif fetch_mode == FetchMode.ALL:
             text = "\n".join(["\t".join(map(str, q.values())) for q in r])
             if len(text) > 1000:
                 text = text[:1000]
-            await inter.send(
-                f"Query was executed successfully with return: ```py\n{text}```"
-            )
+            await inter.send(f"Query was executed successfully with return: ```py\n{text}```")
 
-    @commands.slash_command(
-        name="retrain", description="Retrains the model", guild_ids=TRAIN_GUILD_IDS
-    )
+    @commands.slash_command(name="retrain", description="Retrains the model", guild_ids=TRAIN_GUILD_IDS)
     @commands.is_owner()
     async def retrain(self, inter: disnake.ApplicationCommandInteraction):
         await inter.response.defer()

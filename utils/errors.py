@@ -27,18 +27,14 @@ class NotIgnored(DatabaseException):
 
 class WordNotFound(DatabaseException):
     def __init__(self, word: str, mode: str):
-        super().__init__(
-            f"The expression `{word}` is not added to `{mode}` blacklist and cannot be removed."
-        )
+        super().__init__(f"The expression `{word}` is not added to `{mode}` blacklist and cannot be removed.")
         self.word = word
         self.mode = mode
 
 
 class WordAlreadyExists(DatabaseException):
     def __init__(self, word: str, mode: str):
-        super().__init__(
-            f"The expression `{word}` is already added to `{mode}` blacklist!"
-        )
+        super().__init__(f"The expression `{word}` is already added to `{mode}` blacklist!")
 
 
 class AlreadyIgnored(DatabaseException):
@@ -78,9 +74,7 @@ class ManagerOnly(CustomError):
 
 class WordsThresholdExceeded(DatabaseException):
     def __init__(self):
-        super().__init__(
-            "Sorry, but there can be only **50** words per mode. Please delete some to add new."
-        )
+        super().__init__("Sorry, but there can be only **50** words per mode. Please delete some to add new.")
 
 
 class RuleAlreadyExists(DatabaseException):
@@ -102,10 +96,7 @@ Error: {exencolor.colored(str(error_code), foreground=exencolor.Color.RED)} {err
 
 
 known_exceptions = [
-    i[1]
-    for i in inspect.getmembers(
-        sys.modules[__name__], lambda x: inspect.isclass(x) and issubclass(x, Exception)
-    )
+    i[1] for i in inspect.getmembers(sys.modules[__name__], lambda x: inspect.isclass(x) and issubclass(x, Exception))
 ]
 
 known_exceptions.extend(
@@ -149,9 +140,7 @@ default_answers = {
 }
 
 
-def get_error_message(
-    ctx: commands.Context | Interaction, error: commands.CommandError
-):
+def get_error_message(ctx: commands.Context | Interaction, error: commands.CommandError):
     error = getattr(error, "original", error)
     if type(error) not in known_exceptions:
         return UNKNOWN

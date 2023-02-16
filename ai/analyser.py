@@ -33,6 +33,4 @@ def analyse_sample(sample: str) -> analysis_data:
     sample = extract_mentions(sample.lower())
     nospace = sample.replace(" ", "")
     splat = sample.split(" ")
-    return analysis_data(
-        len(nospace), len(set(nospace)), len(splat), len(set(splat)), sample
-    )
+    return analysis_data(len(nospace), len(set(nospace)), len(splat), len(set(splat)), sample)

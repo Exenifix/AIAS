@@ -8,7 +8,7 @@ from utils.constants import MAX_SPAM_QUEUE_SIZE
 from utils.embeds import WarningEmbed
 from utils.filters.blacklist import is_blacklisted
 from utils.filters.whitelist import contains_fonts
-from utils.utils import Queue
+from utils.utils import Queue, delete_and_preserve
 
 
 class MessageQueueProcessor:
@@ -21,14 +21,10 @@ class MessageQueueProcessor:
 
     def add(self, message: disnake.Message) -> Queue[disnake.Message] | Literal[False]:
         if message.guild.id not in self.data:
-            self.data[message.guild.id] = {
-                message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
-            }
+            self.data[message.guild.id] = {message.author.id: Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)}
             return False
         elif message.author.id not in self.data[message.guild.id]:
-            self.data[message.guild.id][message.author.id] = Queue(
-                [message], max_size=MAX_SPAM_QUEUE_SIZE
-            )
+            self.data[message.guild.id][message.author.id] = Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
             return False
         else:
             queue = self.data[message.guild.id][message.author.id]
@@ -104,7 +100,7 @@ class AntiSpamProcessor:
             return False
 
         if is_spam(message.content):
-            await message.delete()
+            await delete_and_preserve(message)
             warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
                 await message.channel.send(
@@ -179,7 +175,7 @@ class BlacklistProcessor:
         is_curse, expr = is_blacklisted(blacklist, message.content)
 
         if is_curse:
-            await message.delete()
+            await delete_and_preserve(message)
             warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
                 embed = WarningEmbed(
@@ -198,9 +194,7 @@ This member will be muted in **{warnings} warnings.**",
                     delete_after=5,
                 )
             log = await guild.get_logger(self.bot)
-            await log.log_blacklist_deletion(
-                message.author, message.channel, message.content, expr
-            )
+            await log.log_blacklist_deletion(message.author, message.channel, message.content, expr)
             return True
         else:
             return await self.queue_processor.process(message)
@@ -215,32 +209,27 @@ class WhitelistProcessor:
     async def process(self, message: disnake.Message) -> bool:
         guild_data = self.bot.db.get_guild(message.guild.id)
         data = await guild_data.get_whitelist_data()
-        if (
-            not data.enabled
-            or message.channel.id in data.ignored
-            or any(r.id in data.ignored for r in message.author.roles)
-        ):
+        if not data.enabled or message.channel.id in data.ignored or any(r.id in data.ignored for r in message.author.roles):
             return False
 
         is_fonted, chars = contains_fonts(data.characters, message.content)
 
         if is_fonted:
-            await message.delete()
+            await delete_and_preserve(message)
             if len(chars) > 10:
                 chars = chars[:10]
             await message.channel.send(
                 embed=WarningEmbed(
                     message,
                     title="Fonts Detected",
-                    description=f"{message.author.mention}, your message was removed because it contains blacklisted symbols.\n\
-Blocked symbols: `{'`, `'.join(chars)}`.",
+                    description=f"{message.author.mention}, your message was removed because it contains blacklisted"
+                    " symbols.\n"
+                    f"Blocked symbols: `{'`, `'.join(chars)}`.",
                 ),
                 delete_after=5,
             )
             log = await guild_data.get_logger(self.bot)
-            await log.log_single_deletion(
-                message.author, message.channel, message.content
-            )
+            await log.log_single_deletion(message.author, message.channel, message.content)
             return True
 
         return False

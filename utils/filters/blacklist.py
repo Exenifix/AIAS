@@ -56,9 +56,7 @@ def _format_expression(expr: str) -> str:
     return new_expr
 
 
-def _apply_common_blacklist_detection(
-    banned_words: list[str], expr: str
-) -> tuple[bool, str]:
+def _apply_common_blacklist_detection(banned_words: list[str], expr: str) -> tuple[bool, str]:
     curse_words = set(banned_words) & set(expr.split(" "))
     for word in curse_words:
         expr = expr.replace(word, "#" * len(word))
@@ -66,9 +64,7 @@ def _apply_common_blacklist_detection(
     return len(curse_words) > 0, expr
 
 
-def _apply_wildcard_blacklist_detection(
-    banned_words: list[str], expr: str, break_immediately: bool
-) -> tuple[bool, str]:
+def _apply_wildcard_blacklist_detection(banned_words: list[str], expr: str, break_immediately: bool) -> tuple[bool, str]:
     is_curse = False
     for word in banned_words:
         if word in expr:
@@ -80,13 +76,9 @@ def _apply_wildcard_blacklist_detection(
     return is_curse, expr
 
 
-def _apply_super_blacklist_detection(
-    banned_words: list[str], expr: str, break_immediately: bool
-) -> tuple[bool, str]:
+def _apply_super_blacklist_detection(banned_words: list[str], expr: str, break_immediately: bool) -> tuple[bool, str]:
     spaces_pos = _find_all_characters(expr, " ")
-    is_curse, expr = _apply_wildcard_blacklist_detection(
-        banned_words, expr.replace(" ", ""), break_immediately
-    )
+    is_curse, expr = _apply_wildcard_blacklist_detection(banned_words, expr.replace(" ", ""), break_immediately)
     if break_immediately:
         return is_curse, None
 
@@ -103,15 +95,11 @@ def is_blacklisted(bl, expr: str):
     if common_is_curse and not bl.filter_enabled:
         return True, None
 
-    wild_is_curse, expr = _apply_wildcard_blacklist_detection(
-        bl.wild, expr, not bl.filter_enabled
-    )
+    wild_is_curse, expr = _apply_wildcard_blacklist_detection(bl.wild, expr, not bl.filter_enabled)
     if wild_is_curse and not bl.filter_enabled:
         return True, None
 
-    super_is_curse, expr = _apply_super_blacklist_detection(
-        bl.super, expr, not bl.filter_enabled
-    )
+    super_is_curse, expr = _apply_super_blacklist_detection(bl.super, expr, not bl.filter_enabled)
 
     return (
         any([common_is_curse, wild_is_curse, super_is_curse]),

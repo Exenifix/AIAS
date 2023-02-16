@@ -1,19 +1,15 @@
 from datetime import datetime
 
 import disnake
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 
 from utils.bot import Bot
 from utils.embeds import WarningEmbed
-from utils.enums import Stat
+from utils.enums import FetchMode, Stat
 from utils.filters.blacklist import is_blacklisted
 from utils.nicknames import generate_random_nick
 from utils.processors.antiraid import AntiraidProcessor
-from utils.processors.messages import (
-    AntiSpamProcessor,
-    BlacklistProcessor,
-    WhitelistProcessor,
-)
+from utils.processors.messages import AntiSpamProcessor, BlacklistProcessor, WhitelistProcessor
 from utils.utils import try_send
 
 
@@ -26,6 +22,19 @@ class Automod(commands.Cog):
         self.antiraid_processor = AntiraidProcessor(bot)
         self.permission_warnings: dict[int, datetime] = {}
         # structure {guild_id: {member1_id: Queue[Message], member2_id: Queue[Message]}}
+
+        self.invite_enabler.start()
+
+    @tasks.loop(minutes=1)
+    async def invite_enabler(self):
+        guilds = await self.bot.db.execute(
+            "SELECT guild_id FROM invite_pauses WHERE paused_till < CURRENT_TIMESTAMP", fetch_mode=FetchMode.ALL
+        )
+        await self.bot.db.execute("DELETE FROM invite_pauses WHERE paused_till < CURRENT_TIMESTAMP")
+        for g in guilds:
+            guild = self.bot.get_guild(g["id"])
+            if guild is not None:
+                await guild.edit(invites_disabled=False)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: disnake.Message, after: disnake.Message):
@@ -76,8 +85,7 @@ class Automod(commands.Cog):
         except disnake.Forbidden:
             if (
                 message.guild.id not in self.permission_warnings
-                or (datetime.now() - self.permission_warnings[message.guild.id]).seconds
-                >= 120
+                or (datetime.now() - self.permission_warnings[message.guild.id]).seconds >= 120
             ):
                 self.permission_warnings[message.guild.id] = datetime.now()
                 try:

@@ -1,26 +1,18 @@
 import inspect
-import os
 import sys
 import traceback
 from datetime import datetime, timedelta
-from os import getenv, mkdir
+from os import mkdir
 from os.path import exists as path_exists
 
 import disnake
 from disnake.ext import commands, tasks
-from dotenv import load_dotenv
-from exencolorlogs import Logger
+from exencolorlogs import FileLogger
 
 from ai import predictor
 from ai.train import train as train_ai
-from utils import embeds
-from utils.constants import (
-    EMOJIS,
-    LOG_CHANNEL_ID,
-    OWNER_ID,
-    TRAIN_GUILD_IDS,
-    WARNINGS_RESET_INTERVAL,
-)
+from utils import embeds, env
+from utils.constants import EMOJIS, LOG_CHANNEL_ID, OWNER_ID, TRAIN_GUILD_IDS, WARNINGS_RESET_INTERVAL
 from utils.datamodels import Database
 from utils.views import AntispamView, ReportedNotSpamView, UnbanView, UntimeoutView
 
@@ -32,18 +24,16 @@ class Bot(commands.InteractionBot):
 
     def __init__(self):
         intents = disnake.Intents.all()
-        intents.presences = False
-        self.log = Logger("BOT")
+        intents.presences = False  # type: ignore
+        self.log = FileLogger("BOT")
         test_guilds = None
-        self.test_version = bool(os.getenv("TEST_VERSION", 0))
+        self.test_version = env.main.TEST_VERSION
         if self.test_version:
             self.log.warning("Running on TEST VERSION")
             test_guilds = TRAIN_GUILD_IDS
         super().__init__(
             intents=intents,
-            allowed_mentions=disnake.AllowedMentions(
-                everyone=False, users=True, roles=False, replied_user=True
-            ),
+            allowed_mentions=disnake.AllowedMentions(everyone=False, users=True, roles=False, replied_user=True),
             test_guilds=test_guilds,
         )
 
@@ -84,14 +74,7 @@ class Bot(commands.InteractionBot):
         await super().close()
 
     def run(self):
-        load_dotenv()
-        token = getenv("TOKEN")
-        if token is None or token == "":
-            self.log.critical(
-                ".env file filled improperly. Please see README.md for more information."
-            )
-            sys.exit(1)
-
+        token = env.main.TOKEN
         super().run(token)
 
     def load_emojis(self):
@@ -134,9 +117,7 @@ class Bot(commands.InteractionBot):
 
     def auto_setup(self, module_name: str):
         module = sys.modules[module_name]
-        members = inspect.getmembers(
-            module, lambda x: inspect.isclass(x) and issubclass(x, commands.Cog)
-        )
+        members = inspect.getmembers(module, lambda x: inspect.isclass(x) and issubclass(x, commands.Cog))
         for member in members:
             self.add_cog(member[1](self))
 
@@ -177,9 +158,7 @@ class WarningsManager:
         guild_data = self.bot.db.get_guild(message.guild.id)
         duration, threshold = await guild_data.get_warnings_data()
         if current_warnings >= threshold and message.author.current_timeout is None:
-            await message.channel.send(
-                f"**{self.bot.sys_emojis.checkmark} {message.author.mention}, enjoy your mute!**"
-            )
+            await message.channel.send(f"**{self.bot.sys_emojis.checkmark} {message.author.mention}, enjoy your mute!**")
             await message.author.timeout(
                 duration=timedelta(minutes=duration),
                 reason="Warnings threshold exceed.",

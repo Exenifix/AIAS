@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from random import randint
 
 import disnake
@@ -48,10 +49,22 @@ class AntiraidProcessor:
 
         if (
             len(queue) >= antiraid.members_limit
-            and (queue.getright().joined_at - queue.getleft().joined_at).seconds
-            < antiraid.join_interval
+            and (queue.getright().joined_at - queue.getleft().joined_at).seconds < antiraid.join_interval
         ):
             log = await guild_data.get_logger(self.bot)
+            if antiraid.invite_pause_duration is not None:
+                await self.bot.db.execute(
+                    """INSERT INTO
+                       invite_pauses (guild_id, paused_till)
+                    VALUES ($1, $2)
+                    ON CONFLICT DO UPDATE SET
+                        paused_till = $2
+                    WHERE invite_pauses.guild_id = $1
+                    """,
+                    member.guild.id,
+                    datetime.now() + timedelta(minutes=antiraid.invite_pause_duration),
+                )
+                await member.guild.edit(invites_disabled=True)
             for member in queue:
                 try:
                     if antiraid.punishment == AntiraidPunishment.BAN:

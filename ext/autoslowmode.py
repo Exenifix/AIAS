@@ -19,16 +19,12 @@ class Autoslowmode(commands.Cog):
 
         self.asm_data: dict[int, Queue[disnake.Message]] = {}
 
-    async def cog_slash_command_check(
-        self, inter: disnake.ApplicationCommandInteraction
-    ) -> bool:
+    async def cog_slash_command_check(self, inter: disnake.ApplicationCommandInteraction) -> bool:
         return await is_automod_manager(self.bot, inter)
 
     async def is_channel_autoslowmode(self, channel: disnake.TextChannel) -> bool:
         if not self._cache_loaded:
-            self.cached_autoslowmode_channels = set(
-                await self.bot.db.get_autoslowmode_channels()
-            )
+            self.cached_autoslowmode_channels = set(await self.bot.db.get_autoslowmode_channels())
             self._cache_loaded = True
 
         return channel.id in self.cached_autoslowmode_channels
@@ -49,25 +45,19 @@ class Autoslowmode(commands.Cog):
             return
 
         queue = self.add_to_data(message)
-        if (
-            len(queue) < 10
-            or message.channel.id not in self._slowmode_cooldowns
-            or datetime.now() > self._slowmode_cooldowns[message.channel.id]
+        if len(queue) < 10 or (
+            message.channel.id in self._slowmode_cooldowns and datetime.now() < self._slowmode_cooldowns[message.channel.id]
         ):
             return
 
         try:
-            new_slowmode = int(
-                30 / (queue.getright().created_at - queue.getleft().created_at).seconds
-            )
+            new_slowmode = int(30 / (queue.getright().created_at - queue.getleft().created_at).seconds)
             if abs(new_slowmode - message.channel.slowmode_delay) >= 5:
                 await message.channel.edit(
                     slowmode_delay=new_slowmode,
                     reason="Autoslowmode",
                 )
-                self._slowmode_cooldowns[
-                    message.channel.id
-                ] = datetime.now() + timedelta(seconds=AUTOSLOWMODE_EDIT_DELAY)
+                self._slowmode_cooldowns[message.channel.id] = datetime.now() + timedelta(seconds=AUTOSLOWMODE_EDIT_DELAY)
                 await message.channel.send(
                     embed=BaseEmbed(
                         message.guild.me,
@@ -84,12 +74,8 @@ class Autoslowmode(commands.Cog):
     async def autoslowmode(self, _):
         pass
 
-    @autoslowmode.sub_command(
-        name="addchannel", description="Registers a channel for autoslowmode tracking."
-    )
-    async def asm_addchannel(
-        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
-    ):
+    @autoslowmode.sub_command(name="addchannel", description="Registers a channel for autoslowmode tracking.")
+    async def asm_addchannel(self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel):
         if not channel.permissions_for(inter.guild.me).manage_channels:
             await inter.send(
                 embed=ErrorEmbed(
@@ -102,29 +88,17 @@ class Autoslowmode(commands.Cog):
 
         await self.bot.db.add_autoslowmode_channel(channel)
         self.cached_autoslowmode_channels.add(channel.id)
-        await inter.send(
-            embed=SuccessEmbed(
-                inter, f"Successfully added {channel.mention} to autoslowmode channels."
-            )
-        )
+        await inter.send(embed=SuccessEmbed(inter, f"Successfully added {channel.mention} to autoslowmode channels."))
 
-    @autoslowmode.sub_command(
-        name="removechannel", description="Removes autoslowmode from a channel."
-    )
-    async def asm_removechannel(
-        self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel
-    ):
+    @autoslowmode.sub_command(name="removechannel", description="Removes autoslowmode from a channel.")
+    async def asm_removechannel(self, inter: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel):
         await self.bot.db.remove_autoslowmode_channel(channel.id)
         try:
             self.cached_autoslowmode_channels.remove(channel.id)
         except KeyError:
             pass
 
-        await inter.send(
-            embed=SuccessEmbed(
-                inter, f"Successfully removed autoslowmode from {channel.mention}!"
-            )
-        )
+        await inter.send(embed=SuccessEmbed(inter, f"Successfully removed autoslowmode from {channel.mention}!"))
 
 
 def setup(bot: Bot):

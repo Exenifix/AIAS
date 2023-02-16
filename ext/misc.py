@@ -18,9 +18,7 @@ class Miscellaneous(commands.Cog):
     @commands.slash_command(name="stats", description="Show stats about the bot.")
     @commands.cooldown(1, 30, commands.BucketType.channel)
     async def stats(self, inter: disnake.ApplicationCommandInteraction):
-        total_records = await self.bot.db.execute(
-            "SELECT COUNT(1) FROM data", fetch_mode=FetchMode.VAL
-        )
+        total_records = await self.bot.db.execute("SELECT COUNT(1) FROM data", fetch_mode=FetchMode.VAL)
         validated_records = await self.bot.db.execute(
             "SELECT COUNT(1) FROM data WHERE is_spam IS NOT NULL",
             fetch_mode=FetchMode.VAL,
@@ -49,13 +47,9 @@ class Miscellaneous(commands.Cog):
 
     @commands.message_command(name="Purge All Below")
     @commands.has_permissions(manage_messages=True)
-    async def purge_all_below(
-        self, inter: disnake.MessageCommandInteraction, message: disnake.Message
-    ):
+    async def purge_all_below(self, inter: disnake.MessageCommandInteraction, message: disnake.Message):
         await inter.response.defer(ephemeral=True)
-        messages = await inter.channel.purge(
-            after=message.created_at, check=lambda m: not m.pinned
-        )
+        messages = await inter.channel.purge(after=message.created_at, check=lambda m: not m.pinned)
         await inter.send(
             embed=SuccessEmbed(
                 inter,
@@ -67,9 +61,7 @@ class Miscellaneous(commands.Cog):
 
     @commands.user_command(name="Set Random Nick", dm_permission=False)
     @commands.has_permissions(manage_nicknames=True)
-    async def set_random_nick(
-        self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member
-    ):
+    async def set_random_nick(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member):
         if inter.user.top_role <= user.top_role:
             await inter.send(
                 embed=ErrorEmbed(

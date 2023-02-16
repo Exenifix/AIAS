@@ -4,3 +4,4 @@ __pycache__
 models
 local
 logs
+.ruff_cache
