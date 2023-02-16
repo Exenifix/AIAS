@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS guilds
     antiraid_join_interval   INT           DEFAULT 30,
     antiraid_members_limit   INT           DEFAULT 5,
     antiraid_punishment      INT           DEFAULT 1, -- decodification in utils.enums.AntiraidPunishment
+    antiraid_invite_pause_duration INT,
 
     linkfilter_enabled       BOOLEAN       DEFAULT TRUE,
 
@@ -83,4 +84,10 @@ CREATE TABLE IF NOT EXISTS autoslowmode
 (
     id       BIGINT PRIMARY KEY,
     guild_id BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS invite_pauses
+(
+    guild_id BIGINT PRIMARY KEY,
+    paused_till TIMESTAMP NOT NULL
 );

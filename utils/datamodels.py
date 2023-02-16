@@ -18,13 +18,6 @@ from utils.enums import AntiraidPunishment, BlacklistMode, FetchMode, Stat
 from utils.errors import AutoslowmodeChannelAlreadyExists, AutoslowmodeChannelsLimitReached
 from utils.filters.blacklist import preformat
 
-load_dotenv()
-
-DATABASE = getenv("DATABASE")
-HOST = getenv("HOST")
-USER = getenv("USER")
-PASSWORD = getenv("PASSWORD")
-
 if DATABASE is None:
     print(".env file not filled up properly")
     sys.exit(1)
@@ -266,8 +259,9 @@ class AntiraidData(SubData):
     join_interval: int
     members_limit: int
     punishment: AntiraidPunishment
+    invite_pause_duration: int | None
 
-    __slots__ = ["enabled", "join_interval", "members_limit", "punishment"]
+    __slots__ = ["enabled", "join_interval", "members_limit", "punishment", "invite_pause_duration"]
 
     async def load(self):
         await super().load()
@@ -562,3 +556,6 @@ class GuildData:
 
     async def set_antiraid_punishment(self, value: int):
         await self._update(antiraid_punishment=value)
+
+    async def set_antiraid_invite_pause_duration(self, value: int | None):
+        await self._update(antiraid_invite_pause_duration=value)

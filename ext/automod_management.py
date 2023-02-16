@@ -1,4 +1,5 @@
 import json
+import typing
 
 import disnake
 from disnake.ext import commands
@@ -542,8 +543,28 @@ class AntiraidManagement(commands.Cog):
         inter: disnake.ApplicationCommandInteraction,
         punishment: AntiraidPunishment,
     ):
-        await self.bot.db.get_guild(inter.guild.id).set_antiraid_punishment(punishment)
+        await self.bot.db.get_guild(inter.guild.id).set_antiraid_punishment(typing.cast(int, punishment))
         await inter.send(embed=SuccessEmbed(inter, "Successfully updated antiraid punishment!"))
+
+    @antiraid.sub_command(name="setinvitepauseduration")
+    async def setinvitepauseduration(self, inter: disnake.ApplicationCommandInteraction, duration: int):
+        """
+        Set the invite pause duration when the raid occurs
+
+        Parameters
+        ----------
+        duration: Minutes to pause invites for. Set to 0 to disable
+
+        """
+        await self.bot.db.get_guild(inter.guild.id).set_antiraid_invite_pause_duration(
+            abs(duration) if duration != 0 else None
+        )
+        await inter.send(
+            embed=SuccessEmbed(
+                inter,
+                "Successfully set new invite pause duration" if duration != 0 else "Successfully disabled invite pause",
+            )
+        )
 
 
 def setup(bot: Bot):
