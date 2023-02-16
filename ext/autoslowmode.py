@@ -45,10 +45,8 @@ class Autoslowmode(commands.Cog):
             return
 
         queue = self.add_to_data(message)
-        if (
-            len(queue) < 10
-            or message.channel.id not in self._slowmode_cooldowns
-            or datetime.now() > self._slowmode_cooldowns[message.channel.id]
+        if len(queue) < 10 or (
+            message.channel.id in self._slowmode_cooldowns and datetime.now() < self._slowmode_cooldowns[message.channel.id]
         ):
             return
 
