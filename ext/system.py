@@ -96,6 +96,8 @@ Once again, thanks for inviting AIAS! We hope it will help you improve moderatio
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):
+        if guild.owner is None:
+            return
         self.bot.log.info("Left guild: %s. Serving %s guilds now.", guild.name, len(self.bot.guilds))
         await self.bot.log_channel.send(
             embed=BaseEmbed(
