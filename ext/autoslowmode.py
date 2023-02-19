@@ -51,8 +51,10 @@ class Autoslowmode(commands.Cog):
             return
 
         try:
-            new_slowmode = int(30 / (queue.getright().created_at - queue.getleft().created_at).seconds)
-            if abs(new_slowmode - message.channel.slowmode_delay) >= 5:
+            new_slowmode = round(60.0 / (queue.getright().created_at - queue.getleft().created_at).seconds)
+            if new_slowmode < 3:
+                new_slowmode = 0
+            if abs(new_slowmode - message.channel.slowmode_delay) >= 3:
                 await message.channel.edit(
                     slowmode_delay=new_slowmode,
                     reason="Autoslowmode",
