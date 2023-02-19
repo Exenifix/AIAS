@@ -1,11 +1,8 @@
-from datetime import datetime, timedelta
-
 import disnake
 from disnake.ext import commands
 
 from utils.bot import Bot
 from utils.checks import is_automod_manager
-from utils.constants import AUTOSLOWMODE_EDIT_DELAY
 from utils.embeds import BaseEmbed, ErrorEmbed, SuccessEmbed
 from utils.utils import Queue
 
@@ -15,7 +12,6 @@ class Autoslowmode(commands.Cog):
         self.bot = bot
         self.cached_autoslowmode_channels: set[int] = set()
         self._cache_loaded = False
-        self._slowmode_cooldowns: dict[int, datetime] = {}
 
         self.asm_data: dict[int, Queue[disnake.Message]] = {}
 
@@ -45,19 +41,19 @@ class Autoslowmode(commands.Cog):
             return
 
         queue = self.add_to_data(message)
-        if len(queue) < 10 or (
-            message.channel.id in self._slowmode_cooldowns and datetime.now() < self._slowmode_cooldowns[message.channel.id]
-        ):
+        if len(queue) < 10:
             return
 
         try:
-            new_slowmode = int(30 / (queue.getright().created_at - queue.getleft().created_at).seconds)
-            if abs(new_slowmode - message.channel.slowmode_delay) >= 5:
+            new_slowmode = round(30.0 / ((queue.getright().created_at - queue.getleft().created_at).seconds - 2) + 1)
+            if new_slowmode < 3:
+                new_slowmode = 0
+            queue.clear()
+            if abs(new_slowmode - message.channel.slowmode_delay) > 3:
                 await message.channel.edit(
                     slowmode_delay=new_slowmode,
                     reason="Autoslowmode",
                 )
-                self._slowmode_cooldowns[message.channel.id] = datetime.now() + timedelta(seconds=AUTOSLOWMODE_EDIT_DELAY)
                 await message.channel.send(
                     embed=BaseEmbed(
                         message.guild.me,
@@ -66,6 +62,7 @@ class Autoslowmode(commands.Cog):
                     ),
                     delete_after=3,
                 )
+            queue.clear()
 
         except disnake.HTTPException:
             self.bot.log.warning("Failed to update slowmode in %s", message.channel.id)
