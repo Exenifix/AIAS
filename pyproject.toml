@@ -20,7 +20,7 @@ exenenv = "^1.2"
 pre-commit = "^3.0.4"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.0.187"
+ruff = "^0.0.259"
 isort = "^5.11.3"
 black = "^23.1.0"
 
