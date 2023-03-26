@@ -30,7 +30,7 @@ class Queue(Generic[T]):
         return len(self._data)
 
     def __iter__(self) -> Iterator[T]:
-        return iter(self._data)
+        return iter(self._data.copy())
 
     def add(self, value: T) -> None:
         self._data.append(value)
