@@ -11,7 +11,7 @@ jobs:
     environment: production
     env:
       TOKEN: ${{ secrets.TOKEN }}
-      DATABASE: ${{ secrets.DATABASE }}
+      DATABASE: aias
       HOST: 127.0.0.1
       USER: ${{ secrets.USER }}
       PASSWORD: ${{ secrets.PASSWORD }}
