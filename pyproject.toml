@@ -20,7 +20,7 @@ exenenv = "^1.2"
 pre-commit = "^3.2.1"
 ruff = "^0.0.259"
 isort = "^5.11.3"
-black = "^23.1.0"
+black = "^23.3.0"
 
 [tool.isort]
 profile = "black"
