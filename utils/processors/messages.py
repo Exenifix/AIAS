@@ -1,6 +1,8 @@
+from logging import DEBUG
 from typing import Literal
 
 import disnake
+from exencolorlogs import FileLogger
 
 from ai.predictor import is_spam
 from utils.bot import Bot
@@ -18,6 +20,7 @@ class MessageQueueProcessor:
     def __init__(self, bot: Bot):
         self.data = {}
         self.bot = bot
+        self.log = FileLogger("PROC", level=DEBUG)
 
     def add(self, message: disnake.Message) -> Queue[disnake.Message] | Literal[False]:
         if message.guild.id not in self.data:
@@ -26,19 +29,18 @@ class MessageQueueProcessor:
         elif message.author.id not in self.data[message.guild.id]:
             self.data[message.guild.id][message.author.id] = Queue([message], max_size=MAX_SPAM_QUEUE_SIZE)
             return False
-        else:
-            queue = self.data[message.guild.id][message.author.id]
+        queue = self.data[message.guild.id][message.author.id]
 
-            # replace the message in case it was edited
-            for m in queue:
-                if m.id == message.id:
-                    queue.remove(m)
-                    break
+        # replace the message in case it was edited
+        for m in queue:
+            if m.id == message.id:
+                queue.remove(m)
+                break
 
-            queue.add(message)
-            if len(self.data[message.guild.id][message.author.id]) <= 1:
-                return False
-            return queue
+        queue.add(message)
+        if len(self.data[message.guild.id][message.author.id]) <= 1:
+            return False
+        return queue
 
     def remove(self, message: disnake.Message):
         try:
@@ -58,6 +60,7 @@ class AntiSpamQueueProcessor(MessageQueueProcessor):
             return False
 
         full_content = " ".join([m.content for m in queue])
+        self.log.debug(f'Processing message sequence ({len(queue)}: """\n{full_content}\n"""')
         if is_spam(full_content):
             warnings = await self.bot.warnings.add_warning(message)
             if warnings != -1:
@@ -76,8 +79,10 @@ This member will be muted in **{warnings} warnings.**",
             await message.channel.delete_messages(queue)
             queue.clear()
             await self.bot.db.register_message(full_content)
+            self.log.debug("Message is spam")
             return True
 
+        self.log.debug("Message is okay")
         return False
 
 
@@ -88,6 +93,7 @@ class AntiSpamProcessor:
     def __init__(self, bot: Bot):
         self.bot = bot
         self.queue_processor = AntiSpamQueueProcessor(bot)
+        self.log = FileLogger("PROC", level=DEBUG)
 
     async def process(self, message: disnake.Message) -> bool:
         guild_data = self.bot.db.get_guild(message.guild.id)
@@ -99,6 +105,7 @@ class AntiSpamProcessor:
         ):
             return False
 
+        self.log.debug(f'Processing message: """\n{message.content}\n"""')
         if is_spam(message.content):
             await delete_and_preserve(message)
             warnings = await self.bot.warnings.add_warning(message)
@@ -116,8 +123,10 @@ This member will be muted in **{warnings} warnings.**",
             log = await guild_data.get_logger(self.bot)
             await log.log_antispam(message.author, message.channel, message.content)
             await self.bot.db.register_message(message.content)
+            self.log.debug("Message considered a spam")
             return True
         else:
+            self.log.debug("Message considered safe, processing queue")
             return await self.queue_processor.process(message)
 
 
