@@ -11,14 +11,14 @@ disnake = "^2.8.1"
 python-dotenv = "^1.0.0"
 scikit-learn = "^1.2.2"
 exencolorlogs = "^1.1.1"
-psutil = "^5.9.4"
+psutil = "^5.9.5"
 asyncpg = "^0.27.0"
-emoji = "^2.2.0"
+emoji = "^2.4.0"
 exenenv = "^1.2"
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^3.2.2"
-ruff = "^0.0.261"
+pre-commit = "^3.3.2"
+ruff = "^0.0.269"
 isort = "^5.11.3"
 black = "^23.3.0"
 
