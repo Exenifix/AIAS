@@ -441,6 +441,9 @@ class Automation(commands.Cog):
 
     @commands.message_command(name="Delete and Warn")
     async def delete_and_warn(self, inter: disnake.MessageCommandInteraction, message: disnake.Message):
+        if isinstance(message.author, disnake.User):
+            await inter.send("This user is no longer a member of this server.", ephemeral=True)
+            return
         await inter.response.defer(ephemeral=True)
         await delete_and_preserve(message)
         warnings = await self.bot.warnings.add_warning(message)
