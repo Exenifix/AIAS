@@ -7,18 +7,18 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-disnake = "^2.8.1"
+disnake = "^2.9.0"
 python-dotenv = "^1.0.0"
 scikit-learn = "^1.2.2"
 exencolorlogs = "^1.1.1"
 psutil = "^5.9.5"
 asyncpg = "^0.27.0"
-emoji = "^2.4.0"
+emoji = "^2.5.1"
 exenenv = "^1.2"
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^3.3.2"
-ruff = "^0.0.270"
+pre-commit = "^3.3.3"
+ruff = "^0.0.275"
 isort = "^5.11.3"
 black = "^23.3.0"
 
